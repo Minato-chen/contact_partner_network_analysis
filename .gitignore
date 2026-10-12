@@ -1,0 +1,4 @@
+*.dcd
+centered/
+results/
+.DS_Store
