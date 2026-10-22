@@ -3,3 +3,5 @@ centered/
 results/
 .DS_Store
 figures/
+__pycache__/
+*.py[cod]

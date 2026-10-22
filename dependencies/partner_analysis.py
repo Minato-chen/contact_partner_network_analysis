@@ -50,6 +50,14 @@ def frame_chain_contacts(
     atom_pairs = cKDTree(wrapped, boxsize=box).query_pairs(
         cutoff_nm, output_type="ndarray"
     )
+    # query_pairs includes the radius boundary; enforce the strict d < cutoff
+    # definition explicitly, using minimum-image distances in nanometres.
+    if atom_pairs.size:
+        delta = (wrapped[atom_pairs[:, 0]].astype(np.float64)
+                 - wrapped[atom_pairs[:, 1]].astype(np.float64))
+        delta = _minimum_image(delta, np.asarray(box, dtype=np.float64))
+        squared_distance = np.einsum("ij,ij->i", delta, delta)
+        atom_pairs = atom_pairs[squared_distance < cutoff_nm ** 2]
     counts = np.zeros((n_chains, n_chains), dtype=np.int32)
     if atom_pairs.size == 0:
         return counts
@@ -128,23 +136,57 @@ def analyze_trajectory(
     return pd.DataFrame.from_records(records)
 
 
+METRICS = ["total_contacts", "partner_count", "contacts_per_partner",
+           "local_neighbors_5nm"]
+
+
+def frame_partner_means(rows: pd.DataFrame) -> pd.DataFrame:
+    """One equally weighted observation per variant, threshold and frame.
+
+    contacts_per_partner remains the mean of valid per-chain ratios; zero-
+    partner chains have NaN ratios and are excluded only from that metric.
+    """
+    keys = ["variant", "threshold", "frame", "block"]
+    if rows.empty:
+        raise ValueError("Cannot summarize empty chain records")
+    if rows.groupby(keys[:-1])["block"].nunique().ne(1).any():
+        raise ValueError("Each frame must belong to exactly one time block")
+    grouped = rows.groupby(keys, sort=True)
+    frame = grouped[METRICS].mean()
+    frame["n_dense"] = grouped.size()
+    frame["n_valid_contacts_per_partner"] = grouped["contacts_per_partner"].count()
+    return frame.reset_index()
+
+
 def summarize_blocks(rows: pd.DataFrame) -> pd.DataFrame:
-    """Use contiguous time blocks, not chain-frame rows, as uncertainty units."""
-    metrics = ["total_contacts", "partner_count", "contacts_per_partner",
-               "local_neighbors_5nm"]
-    per_block = (rows.groupby(["variant", "threshold", "block"], as_index=False)
-                 [metrics].mean())
-    summary = per_block.groupby(["variant", "threshold"])[metrics].agg(
-        ["mean", "std", "count"]
-    )
+    """Frame-equal means and frame SD, with block-based uncertainty estimates.
+
+    Legacy *_std and *_count retain their meanings (block SD and valid block
+    count). *_mean is always computed directly from frame means, including
+    when blocks have unequal lengths. Block SEM assumes sufficiently weak
+    correlation between block means; block length must be checked separately.
+    """
+    keys = ["variant", "threshold"]
+    frame = frame_partner_means(rows)
+    per_block = frame.groupby(keys + ["block"], as_index=False)[METRICS].mean()
+    summary = per_block.groupby(keys)[METRICS].agg(["mean", "std", "count"])
     summary.columns = [f"{metric}_{stat}" for metric, stat in summary.columns]
-    summary = summary.reset_index()
-    for metric in metrics:
+    frames = frame.groupby(keys)
+    for metric in METRICS:
+        summary[f"{metric}_mean"] = frames[metric].mean()
+        summary[f"{metric}_std_frames"] = frames[metric].std()
+        summary[f"{metric}_count_frames"] = frames[metric].count()
+        summary[f"{metric}_std_blocks"] = summary[f"{metric}_std"]
         summary[f"{metric}_sem_blocks"] = (
-            summary[f"{metric}_std"] /
+            summary[f"{metric}_std_blocks"] /
             np.sqrt(summary[f"{metric}_count"].clip(lower=1))
         )
-    return summary
+    summary["n_frames"] = frames.size()
+    summary["n_blocks"] = frames["block"].nunique()
+    block_sizes = frame.groupby(keys + ["block"]).size()
+    summary["block_frames_min"] = block_sizes.groupby(level=keys).min()
+    summary["block_frames_max"] = block_sizes.groupby(level=keys).max()
+    return summary.reset_index()
 
 
 def plot_partner_test(rows: pd.DataFrame, output_stem: Path) -> None:
@@ -163,7 +205,7 @@ def plot_partner_test(rows: pd.DataFrame, output_stem: Path) -> None:
               "B10_T260": "#d07a3f"}
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.8), constrained_layout=True)
 
-    primary = rows[rows["threshold"] == 5].copy()
+    primary = rows[rows["threshold"] == 1].copy()
     # Frame averages prevent frames with more dense chains receiving more weight.
     frame = (primary.groupby(["variant", "frame"], as_index=False)
              [["total_contacts", "partner_count"]].mean())
@@ -175,15 +217,13 @@ def plot_partner_test(rows: pd.DataFrame, output_stem: Path) -> None:
                 ylabel="Distinct partners per chain")
     axes[0].legend(title="Variant", markerscale=1.8)
 
-    block = (rows.groupby(["variant", "threshold", "block"], as_index=False)
-             ["partner_count"].mean())
-    variants = list(dict.fromkeys(block["variant"]))
-    offsets = np.linspace(-0.18, 0.18, max(1, len(variants)))
-    for off, variant in zip(offsets, variants):
-        data = block[block["variant"] == variant]
-        stat = data.groupby("threshold")["partner_count"].agg(["mean", "sem"])
-        axes[1].errorbar(np.asarray(stat.index) + off, stat["mean"],
-                         yerr=stat["sem"], marker="o", ms=4, capsize=2,
+    summary = summarize_blocks(rows)
+    variants = list(dict.fromkeys(rows["variant"]))
+    for variant in variants:
+        stat = (summary[summary["variant"] == variant]
+                .sort_values("threshold"))
+        axes[1].errorbar(stat["threshold"].to_numpy(), stat["partner_count_mean"],
+                         yerr=stat["partner_count_sem_blocks"], marker="o", ms=4, capsize=2,
                          color=colors.get(variant, "#555555"), label=variant)
     axes[1].set(xlabel="Minimum residue contacts defining a partner",
                 ylabel="Distinct partners per chain", xticks=THRESHOLDS)

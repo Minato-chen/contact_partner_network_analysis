@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 
 from dependencies.contact_persistence_test import load_edges
-from dependencies.partner_analysis import analyze_trajectory, summarize_blocks
+from dependencies.partner_analysis import (analyze_trajectory, frame_partner_means,
+                                           summarize_blocks)
 
 DATA_ROOT = Path('/Users/minato/Desktop/slab_idr')
 HERE = Path(__file__).resolve().parent
@@ -71,18 +72,25 @@ def partner_distributions(rows: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--force', action='store_true', help='Recompute existing outputs')
+    parser.add_argument('--centered-dir', type=Path, default=CENTERED,
+                        help='Directory containing the selected centred trajectories')
+    parser.add_argument('--results-dir', type=Path, default=RESULTS,
+                        help='Use a new directory when changing input trajectories or parameters')
     args = parser.parse_args()
-    RESULTS.mkdir(parents=True, exist_ok=True)
+    centered_dir, results_dir = args.centered_dir, args.results_dir
+    if centered_dir.resolve() != CENTERED.resolve() and results_dir.resolve() == RESULTS.resolve():
+        parser.error('A different --centered-dir requires a separate --results-dir')
+    results_dir.mkdir(parents=True, exist_ok=True)
     all_rows = []
     for variant, (z_den, z_dil) in VARIANTS.items():
         name = f'tau_k18_129aa_{variant}_T260_5'
         pdb = DATA_ROOT / name / 'top.pdb'
-        dcd = CENTERED / f'{variant}_T260_centered.dcd'
+        dcd = centered_dir / f'{variant}_T260_centered.dcd'
         for path in (pdb, dcd):
             if not path.is_file():
                 raise FileNotFoundError(path)
-        rows_path = RESULTS / f'{variant}_T260_chain_partner_rows.csv.gz'
-        edges_path = RESULTS / f'{variant}_edge_arrays.npz'
+        rows_path = results_dir / f'{variant}_T260_chain_partner_rows.csv.gz'
+        edges_path = results_dir / f'{variant}_edge_arrays.npz'
         with TemporaryDirectory(prefix='tau_k18_read_') as temp_dir:
             # mdtraj's DCD reader requires an ASCII pathname on this machine.
             alias = Path(temp_dir) / f'{variant}_T260_centered.dcd'
@@ -106,13 +114,15 @@ def main() -> None:
                 print(f'[compute] {variant}: chain-pair arrays', flush=True)
                 contacts, both_dense = load_edges(pdb, alias, z_den, EXPECTED_FRAMES)
                 write_npz(contacts, both_dense, edges_path)
-    summary = summarize_blocks(pd.concat(all_rows, ignore_index=True))
-    write_csv(summary, RESULTS / 'chain_partner_summary.csv')
+    combined = pd.concat(all_rows, ignore_index=True)
+    write_csv(frame_partner_means(combined), results_dir / 'chain_partner_frame_means.csv')
+    summary = summarize_blocks(combined)
+    write_csv(summary, results_dir / 'chain_partner_summary.csv')
     mean, blocks, diagnostic = partner_distributions(pd.concat(all_rows, ignore_index=True))
-    write_csv(mean, RESULTS / 'partner_count_distribution.csv')
-    write_csv(blocks, RESULTS / 'partner_count_distribution_by_block.csv')
-    write_csv(diagnostic, RESULTS / 'partner_count_time_blocks.csv')
-    print(f'[ok] {EXPECTED_FRAMES} frames per variant; CSV and NPZ outputs: {RESULTS}')
+    write_csv(mean, results_dir / 'partner_count_distribution.csv')
+    write_csv(blocks, results_dir / 'partner_count_distribution_by_block.csv')
+    write_csv(diagnostic, results_dir / 'partner_count_time_blocks.csv')
+    print(f'[ok] {EXPECTED_FRAMES} frames per variant; CSV and NPZ outputs: {results_dir}')
 
 
 if __name__ == '__main__':
