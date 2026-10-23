@@ -6,6 +6,7 @@
 run.py                自动发现并运行本层指标，相界优先
 phase_boundary.py     时间平均密度与浓相核心边界
 kappa.py              使用localCIDER计算序列电荷分布参数κ
+csat.py               稀相区域浓度及时间块误差（默认2w）
 scd.py                按序列电荷及序列间距计算SCD
 rg.py                 全部链、全部分析帧的质量加权Rg
 residue_masses.csv    CALVADOS2残基质量表
@@ -17,7 +18,7 @@ residue_masses.csv    CALVADOS2残基质量表
 
 Rg：整链坐标相对质量加权质心的均方距离开根号，单位nm。每残基一珠，首尾质量分别加2/+16 Da。Rg不依赖接触阈值。基础汇总的Rg是全部链先帧内平均、再对帧等权平均；这里不提供尚未计算的块SEM，浓相/中心链Rg及误差见接触结果。
 
-详细结果在03_results/<编号>/01_basic/{phase_boundary,rg}/，成功后有COMPLETE、metadata.json和scalars.json。后者仅提取最终汇总值，04不重复计算。
+详细结果在03_results/<编号>/01_basic/{phase_boundary,rg,csat}/，成功后有COMPLETE、metadata.json和scalars.json。后者仅提取最终汇总值，04不重复计算。
 
 ```bash
 python 02_calculate/01_basic/run.py
@@ -50,18 +51,23 @@ python 04_summary/run.py
 
 基础run自动包含SCD，汇总自动加入basic.csv，无需另行注册。
 
-## 以后新增单值指标
+## csat
 
-csat尚未实现。类似κ的单值指标可以直接写03_results/<编号>/01_basic/<指标名>.scalars.json，不再创建目录、单值CSV或额外完成标记。示例输出接口（不包含κ算法）：
+读取上游相界的右侧半高距离w，选择箱中心满足`|z| > 2w`的两端区域（不是浓相核心半宽0.6w的两倍）。复用上游0.1 nm分箱、盒长和分析帧，不重新估计相界。
 
-```python
-from common import results as files
-path = results_root / simulation["id"] / "01_basic/kappa.scalars.json"
-files.start_scalar(path, simulation, parameters=PARAMETERS, inputs={"sequence": sequence})
-value = ...  # 此处执行指标本身的计算
-files.finish_scalar(path, [files.scalar_record("kappa", value, "dimensionless")])
+每帧统计选中箱的珠数，除以链长、选中箱总体积并换算为链等效mM，再对全部帧等权平均。左右两端一起统计，包含零浓度箱；按珠位置，不按整链中心划相。左右浓度也分别保留，便于观察差异。
+
+`PARAMETERS`设稀相系数2.0、每块50帧。误差为完整等长块均值的样本标准差除以块数平方根；尾部不足一块仍进入总均值，不用于SEM，完整块少于2个时SEM留空。块SEM反映选定时间块下的采样误差，不能单凭它证明已平衡；边界应位于稀相平台。没有有效稀相区域时失败，不改用固定边界。零均值只表示所选帧未观测到稀相珠，不证明真实csat为零。
+
+结果在03_results/<编号>/01_basic/csat/：concentration_frames.csv逐帧浓度及原始帧号；block_means.csv时间块均值；summary.csv最终统计；regions.json实际取样箱及体积；metadata.json及scalars.json记录来源和定义。
+
+```bash
+python 02_calculate/01_basic/csat.py
+python 04_summary/run.py
 ```
 
-先start再计算，失败会保持未完成，避免旧数值冒充新结果。记录注明单位与定义；不同方法可用definition字典区分。基础指标object留空，合入同一张basic.csv。
+基础run会在相界之后自动执行csat，04自动加入basic.csv及SEM列。所有绘图仍在05完成。
 
-csat这类轨迹统计量应保留逐帧、时间块和区域等详细结果，再附scalars.json；不能只留下一个均值。辅助函数放公共工具目录或以下划线命名，避免被当作新指标执行。
+## 以后新增指标
+
+单值序列指标沿用κ/SCD的`<指标名>.scalars.json`，不必创建单值CSV或额外目录。轨迹统计量如csat保留明细并附scalars.json；04只提取最终值，不重复计算。辅助文件以下划线命名或放公共工具目录，避免被当作指标执行。
