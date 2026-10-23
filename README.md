@@ -1,172 +1,222 @@
-# Tau K18 T260：接触数、伙伴链数与稠相网络分析
+# 分子内与分子间接触分析
 
-本文件夹用于从 A18、B01、B10 三组原始轨迹复现 PPT 对应的三组图。流程为：
+按阶段处理模拟轨迹：**居中 → 密度与浓相边界 → 分子内/分子间接触 → Notebook 绘图**。各模块独立读写文件，原始数据只读；分析参数放在对应入口，不放进模拟清单。
 
-```text
-原始 DCD + top.pdb
-  → 01_center.py → centered/*_centered.dcd
-  → 02_compute.py → results/*.csv.gz、*.csv、*.npz
-  → notebook/ 中的 01、02、03 → figures/ 中的 PPT 用图
-```
-
-原始 DCD 和 `top.pdb` 不复制到本文件夹。两个脚本中的 `DATA_ROOT` 固定为 `/Users/minato/Desktop/slab_idr`。若原始数据搬到别处，需要同时修改 `01_center.py` 和 `02_compute.py` 的 `DATA_ROOT`。
-
-## 1. 环境与输入文件
-
-需要 Python 3.11，以及 NumPy、pandas、SciPy、MDTraj、MDAnalysis、Matplotlib、Jupyter/IPython。先进入分析文件夹：
-
-```bash
-cd /Users/minato/Desktop/slab_idr/contact_partner_network_analysis
-```
-
-每个变体的原始文件应位于以下位置（将 `A18` 换为 `B01`、`B10` 即是另两组）：
+## 1. 目录
 
 ```text
-/Users/minato/Desktop/slab_idr/tau_k18_129aa_A18_T260_5/top.pdb
-/Users/minato/Desktop/slab_idr/tau_k18_129aa_A18_T260_5/tau_k18_129aa_A18_T260_5.dcd
+simulations.yaml                    原始模拟清单
+01_center/
+  run.py                            选帧与居中参数
+  dependencies/                     居中实现
+  output/<模拟编号>/
+02_calculate/
+  run.py                            依次运行边界和两类接触
+  dependencies/analysis_io.py        读取轨迹、周期距离、统计
+  phase_boundary/                    密度与浓相核心边界
+  intramolecular/                    分子内接触与残基网络
+  intermolecular/                    分子间接触、伙伴与链网络
 ```
 
-缺少输入时，脚本会报 `FileNotFoundError` 并指出缺少的路径。
+第二步的三个计算目录各有 `run.py`、`dependencies/`、`output/` 和 `notebooks/`。`project.py` 只提供清单读取和入口工具；`result_files.py` 提供简单文件操作，没有统一 workflow。
 
-## 2. 第一步：生成居中轨迹
+## 2. 参数在哪里改
+
+`simulations.yaml` **只保存原始信息**：模拟编号、条件、拓扑和轨迹路径。`data_root` 相对 YAML 解析，文件路径相对 `data_root` 解析；可用绝对路径或环境变量。
+
+```yaml
+data_root: ..
+simulations:
+  - id: A18_T260
+    variant: A18
+    temperature_K: 260
+    topology: tau_k18_129aa_A18_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A18_T260_5/tau_k18_129aa_A18_T260_5.dcd
+    # time_step_ps: 100.0
+```
+
+`time_step_ps` 是**原始相邻保存帧**的时间间隔，不是积分步长；可选 `time_origin_ps` 默认 0。缺少时间间隔时不生成实际时间。每个独立模拟使用不同 `id`。
+
+修改各入口顶部的 `PARAMETERS`：
+
+| 入口 | 默认参数 |
+|---|---|
+| `01_center/run.py` | `start=750`、`stop=None`、`step=3`、`expected_frames=750`、`max_bond_nm=1.0` |
+| `02_calculate/phase_boundary/run.py` | `bin_width_nm=0.1`、`peak_halfwidth_bins=5`、`dense_coefficient=0.6`、`min_peak_concentration_mM=1.0` |
+| `02_calculate/intramolecular/run.py` | `contact_cutoff_nm=0.7`、`exclude_sequence_separation=2` |
+| `02_calculate/intermolecular/run.py` | `contact_cutoff_nm=0.7`、`partner_thresholds=[1,5,10]`、`network_thresholds=[1,5,10,20,30,35]` |
+
+- 帧号从 0 开始，`stop` 不包含该帧；`None` 表示到结尾。
+- `expected_frames=None` 可取消固定帧数要求；`max_bond_nm` 是整链重建检查，与接触距离无关。
+- 两类接触默认 `block_frames=50`（统计块）；第二步各模块默认 `chunk_frames=25`（读取块，只影响内存）。
+- 第一、二步总入口的 `SIMULATIONS=None` 表示全部；命令行 `--simulation` 可覆盖选择。单组取帧差异可在第一步的 `SIMULATION_PARAMETERS` 中设置。
+
+## 3. 如何运行
+
+在项目根目录、同一个 Python 环境中执行。需要 Python 3.10+：
 
 ```bash
-python 01_center.py
+python -m pip install -r requirements.txt
+
+# 建议先完整跑一组；第一步成功后再执行第二步
+python -u 01_center/run.py --simulation A18_T260
+python -u 02_calculate/run.py --simulation A18_T260
+
+# 全部模拟：去掉 --simulation
+python -u 01_center/run.py
+python -u 02_calculate/run.py
 ```
 
-脚本按 A18、B01、B10 的顺序处理。它从原轨迹的**零起始索引 750** 开始，每隔 3 帧取一帧：750、753、…、2997；预期每组输出 750 帧，保存为 `centered/{变体}_T260_centered.dcd`。具体居中由 `dependencies/center_local.py` 执行。程序检查取帧数是否为750，并在写出后重新读取全部帧，检查盒子、有限坐标、相邻骨架距离和链中心位置。
+本机可用 `/opt/anaconda3/bin/python` 替换 `python`。项目位于 `/Users/minato/Desktop/slab_idr/contact_partner_network_analysis`。
 
-- `[ok] A18: ...`：A18 的居中 DCD 已写入。
-- `[skip] verified trajectory and settings: ...`：输入记录、参数、算法源码指纹、输出DCD及诊断文件的校验均匹配，才复用。旧版没有记录的DCD会报错，需选择新输出目录或显式使用`--force`。
-- `Step 1 complete`：三组都已处理或跳过，可以进入第二步。
-
-新版本建议先用`python 01_center.py --output-dir centered_verified`保存到独立目录，保留旧`centered/`。后续使用`python 02_compute.py --centered-dir centered_verified --results-dir results_verified`读取新轨迹并单独输出结果。`notebook/`中若要画新版结果，需将`RESULTS`指向`../results_verified`，避免仍读取旧图数据。
-
-只处理 B01：`python 01_center.py --variant B01`。重新生成已有文件：`python 01_center.py --force`。两者也可组合，例如 `python 01_center.py --variant B01 --force`。
-
-若重新生成任何居中 DCD，随后应运行 `python 02_compute.py --force`，避免新轨迹配旧计算结果。
-
-MDAnalysis 可能打印有关 `xdrlib` 或 `DCDReader` 的 `DeprecationWarning`。它们是依赖库的未来兼容性提示；请以各变体的 `[ok]`／`[skip]`、最后的 `Step 1 complete` 和进程退出状态判断本次是否完成。警告出现后脚本可能仍在处理下一组轨迹。
-
-### 居中到底做了什么（易懂说明）
-
-可以把模拟盒子想象成一根长管，蛋白质较密集的一团会沿长方向移动。居中的目的，是把每帧中这团蛋白质放回盒子中部，方便后续在相同位置统计；不是把某一条中心链固定住。
-
-1. **选画面**：对3000帧原轨迹，跳过零索引0–749，之后每3帧取一次，共750帧。逐帧读取原轨迹，写出时只保留这些帧。第一步会核对实际取帧数与`EXPECTED_FRAMES=750`一致。
-2. **粗对齐**：沿z方向把盒子切成厚1 Å（0.1 nm）的薄片，数每片里的残基珠。把珠最多的一片移到盒子中部；所有珠一起平移。
-3. **精对齐**：重新数薄片中的珠，把连续非空的薄片看作一个区域。选择珠数总和最多的区域，计算其中珠的平均z位置，再把这个位置移到盒子中部。这里是按珠数加权，不是按质量加权，也不是根据两侧界面求中点。
-4. **处理周期边界**：定位密度前以及每次平移后，将珠的周期位置放回盒内。最后沿每条链的残基顺序，将相邻骨架位移换成周期最短位移，逐珠恢复连续链；再整链平移，使几何中心位于主盒内。完整链的个别珠允许落在盒外，不能再逐珠wrap。
-5. **保存**：先写临时DCD，完成后再替换到`centered/`。原始轨迹不改动。
-
-当前盒长150 nm，所以居中目标是z=75 nm，不是z=0；后续选链时才减去半盒长。整个过程只沿z平移，没有旋转体系，也没有在此阶段决定哪些链属于浓相。
-
-**适用范围**：固定正交盒、每个segment对应一条按残基顺序排列的线性链、每残基一珠。盒长变化、非正交盒、不合理骨架距离或帧数不符时拒绝输出。居中不证明相分离，也不保证多个片层时一直选择同一片层；不应用居中轨迹直接计算绝对扩散。
-
-**2026-10-22优化**：保留原有密度峰及连续区域的两次对齐，改用沿骨架的周期重建绕过本地unwrap提前返回问题。原有文件不自动覆盖。`max_bond_nm`默认1.0 nm仅作宽松的骨架/拓扑检查，和残基接触阈值无关；不应为掩盖异常任意放宽。
-
-每个DCD另有两份文件：
-- `*.diagnostics.csv`：原始帧号、两次平移量、区域范围/宽度、珠数占比、第二大区域占比、是否触及盒边、写出前重新分箱后识别的主要区域中心偏移、最大相邻珠距离。逐帧查看这些数据可检查区域切换或稀区牵引；不把一次对齐成功当作相分离证明。`final_patch_center_offset_nm`是重新分箱后再选主要非空区域的偏移，用于检查区域识别是否稳定；不是已独立确定的物理浓相中心误差。A18/B10部分帧此项偏大，需结合密度剖面判断，不能据此自动删帧或重定选区。
-- `*.metadata.json`：输入绝对路径、大小、修改时间、拓扑SHA256、取帧参数、算法源码SHA256、输出与诊断文件SHA256。原始DCD使用文件大小/修改时间识别，不是完整内容哈希；如果人为保留大小和时间修改原DCD，此记录不能识别。metadata最后发布，作为完成记录。
-
-程序逐帧读取而非将整条DCD载入内存，在临时目录写出并复核，通过后才发布文件。三份文件不是一个原子事务，但中断或错配时下一次复用校验会拒绝。不要同时对同一输出运行多个写入进程。
-
-### 与ana_v4及本地CALVADOS代码的区别（仅比较居中）
-
-本段依据本地`/Users/minato/Desktop/slab_idr/ana_v4/unified_analysis/geometry.py`及`/Users/minato/Desktop/slab_idr/calvados/analysis.py`。本地CALVADOS文件的版本尚未与服务器或上游发行版核对，因此下述差异只对应这些具体文件。
-
-| 项目 | 本项目contact_partner | ana_v4 | 本地CALVADOS `SlabAnalysis.center` |
-|---|---|---|---|
-| 主要步骤 | 密度峰粗对齐→主要连续区域精对齐→沿骨架恢复完整链 | 两次密度对齐相同，末尾调用unwrap | 两次密度对齐相同，末尾调用unwrap |
-| 用谁确定密度中心 | 全部珠 | 全部珠 | 可选参考组分`ref`或全部珠`all`；参考组分不一定是一条链 |
-| 帧设置 | 固定start=750、step=3 | 默认start=总帧数的1/4、step=3，可指定stop | 接口默认start/end=None、step=1，可由调用者指定 |
-| 密度薄片 | 1 Å | 1 Å | 本地`calc_z_Angstr`为1 Å |
-| 连续区域选择 | 按非零箱的珠数总和选择；循环结束后再检查最后一段 | 同样补查最后一段 | 本地`calc_zpatch`未补查结束时仍连续非零的最后一段 |
-| 没有可用区域时 | 报错，拒绝输出 | 不执行第二次平移 | 直接对区域求加权平均，无同样保护 |
-| 骨架连接 | 按每segment相邻索引配对 | 按索引i连接i+1 | 按索引i连接i+1；当前连续索引拓扑下相同 |
-| 输出与复用 | 独立目录，参数/来源/文件校验匹配才复用，写后逐帧复核 | 主流程调用时写出到配置的output目录 | 写到该SlabAnalysis设置的input_path/centered_dcd |
-
-因此，三者采用的是同一类slab居中思路，不是三套独立的物理方法。当前单组分体系若CALVADOS参考组包含全部链，`ref`与`all`可使用相同的珠；多组分时则可能产生不同中心。contact_partner与ana_v4对末段的补查是相对于本地CALVADOS文件的实现差异，不代表已验证所有帧输出都相同或不同。
-
-CALVADOS文件还有一个名字相近的`center_traj`函数：它只按全部珠的几何中心整体移动到盒中心，不进行上述密度峰和连续区域的两次对齐。这里对应比较的是`SlabAnalysis.center`，不要将两者混淆。
-
-## 3. 第二步：计算 CSV 与 NPZ
-
-确认三组居中 DCD 已存在，然后运行：
+选择多组可重复写 `--simulation`。第二步总入口总会先重算边界；只补算接触时使用独立入口：
 
 ```bash
-python 02_compute.py
+# 已有第一步结果后，计算边界
+python 02_calculate/phase_boundary/run.py --simulation A18_T260
+# 已有有效边界后，独立计算两类接触
+python 02_calculate/intramolecular/run.py --simulation A18_T260
+python 02_calculate/intermolecular/run.py --simulation A18_T260
 ```
 
-脚本读取 `centered/` 的 DCD 和原始目录中的 `top.pdb`。链间接触距离阈值为 **1.0 nm**，只将稠相内部链之间的接触计入分析。A18、B01、B10 的稠相中心半宽分别为 **11.25、8.91、9.81 nm**。逐链伙伴数分别按链对至少有 **1、5、10** 个接触计算；汇总使用连续 **50 帧**为一个时间块。
+总入口也支持 `--analysis phase_boundary`、`--analysis intramolecular` 或 `--analysis intermolecular`。入口参数帮助见 `--help`。
 
-`results/` 中的产物：
+**每次运行都会覆盖所选模拟在本模块的结果，不自动复用。** 修改居中/取帧后重跑全部下游；修改边界后重跑两类接触；修改某类接触参数只重跑该类；修改绘图样式只重画。
 
-| 文件 | 内容 | 用途 |
-|---|---|---|
-| `{变体}_T260_chain_partner_rows.csv.gz` | 逐帧、逐稠相链、逐伙伴阈值的接触数与伙伴数 | notebook 01；生成分布 CSV |
-| `chain_partner_frame_means.csv` | 每帧稠相链的平均指标、稠相链数及有效比值链数 | 图a核对、逐帧波动检查 |
-| `chain_partner_summary.csv` | 每帧等权均值、逐帧SD、时间块SD与SEM | 数值核对；notebook 01按同一函数重新汇总逐链CSV |
-| `partner_count_distribution.csv` | 逐帧归一化后平均的伙伴数分布 | notebook 02 |
-| `partner_count_distribution_by_block.csv` | 各时间块的伙伴数分布 | notebook 02 的波动带 |
-| `partner_count_time_blocks.csv` | 稠相链数与平均伙伴数的时间块诊断数据 | 辅助检查；当前 PPT 图不读取 |
-| `{变体}_edge_arrays.npz` | 每帧每对链的接触数，以及双方是否均在稠相的标记 | notebook 03 |
-
-CSV 文件名的 `{变体}` 后缀为 `_T260`；NPZ 文件名没有该后缀。CSV 和 NPZ 是同级计算产物；不能只用逐链 CSV 重建 notebook 03 所需的链对数组。
-
-`[compute]` 表示正在计算，`[reuse]` 表示对应文件已存在并被复用；最后的 `[ok] 750 frames per variant` 表示第二步完成。复用逐链 CSV 时，脚本仍会更新汇总与分布 CSV。`[reuse]` 也只根据文件存在判断。完整重算三组结果：
+### 画图
 
 ```bash
-python 02_compute.py --force
+python -m jupyterlab
 ```
 
-第二步目前没有只重算单个变体的选项。可通过`--centered-dir`和`--results-dir`指定独立输入/输出；使用非默认轨迹目录时必须同时指定非默认结果目录。第二步旧结果的复用仍以存在为依据，改变轨迹/距离/选区后应使用新结果目录或`--force`，不能仅依赖第一步的校验。
+打开各模块的 `notebooks/`，从头运行。只算了一组时将 `SELECTED` 改为 `["A18_T260"]`，全部完成后可用 `None`。Notebook 只读取数值结果；图片写到对应 `output/figures/`，并记录来源。重算后重启内核再画图。
 
-## 4. 从 notebook 生成 PPT 图
+### 服务器
 
-**必须从 `notebook/` 目录启动 Jupyter**。三个 notebook 通过 `../results/` 读入数据，并把图写到 `../figures/`：
+从项目根目录提交，两次任务按顺序运行：
 
 ```bash
-cd /Users/minato/Desktop/slab_idr/contact_partner_network_analysis/notebook
-jupyter lab
+qsub -v STAGE=01_center,CONTACT_PYTHON=/path/to/env/bin/python jobs/pbs.sh
+# 确认第一步成功后提交
+qsub -v STAGE=02_calculate,CONTACT_PYTHON=/path/to/env/bin/python jobs/pbs.sh
 ```
 
-| Notebook | 输入 | 最终 PNG |
-|---|---|---|
-| `01_接触数とパートナー鎖数_V26.ipynb` | 三组逐链 CSV | `figures/01_partner/24_chain_partner_test.png` |
-| `02_パートナー鎖数の分布_V26.ipynb` | 分布及时间块分布 CSV | `figures/02_distribution/partner_count_distribution_threshold1_5.png` |
-| `03_稠相ネットワーク閾値解析_V26.ipynb` | 三组链对 NPZ | `figures/03_network/graph_threshold_for_slide.png` |
+Grid Engine 使用 `jobs/grid_engine.sh`。单组可加 `SIMULATION=A18_T260`。按集群补充队列和资源；模板未在服务器实测，不会自动等待上游任务。多组默认串行；第一步临时盘需容纳一份居中 DCD。
 
-三份 notebook 相互独立，无需依次运行；每张图还会导出 SVG、PDF。`figures/` 是可重新生成的绘图输出，不是第二步的输入。表中的 `figures/` 路径以分析文件夹为起点。
+## 4. 每一步算什么
 
-## 与 PPT 的数值定义
+### 第一步：居中
 
-- notebook 01：a 图的伙伴阈值是 **1**；b 图比较阈值 **1、5、10**。现有 V35 PPT 的旧表格及旧图可能采用阈值 5；替换图片时应同步核对标题、图注和讲稿。
-- notebook 02：展示阈值 **1 和 5** 的伙伴数分布；波动带来自时间块之间的标准差。
-- notebook 03：从 NPZ 计算网络全局效率和最大连通分量比例，绘制 PPT 用双面板图。波动带描述时间块间差异，不是独立模拟重复的误差。
+1. 按 `start/stop/step` 选原始帧。
+2. 沿 z 以不超过 1 Å 的均匀箱统计珠密度，将最高箱移到盒中心。
+3. 找珠数最多的连续非空区域（合并周期首尾），再将其加权中心移到盒中心。
+4. 沿相邻珠的周期最短位移恢复完整链，再整链平移，使链几何中心位于主盒内。
 
-## 结果1的平均与误差定义
+只负责居中和整链重建，不判断轨迹是否平衡或是否相分离。第一步使用 Å，第二步使用 nm；1 nm = 10 Å。原始输入应是生产轨迹，不要对旧版已截帧的轨迹重复处理。
 
-每个变体、伙伴阈值分别汇总，顺序为：**每帧内对稠相链求平均 → 对750个帧平均值等权平均**。稠相链较多的帧不会获得更大权重。notebook 01调用 `dependencies/partner_analysis.py` 的同一绘图与汇总函数：图a每帧一个点；图b中心值为750帧平均，误差线为时间块SEM。
+### 第二步上游：密度与浓相核心
 
-- `*_mean`：帧平均值的直接平均。
-- `*_std_frames`、`*_count_frames`：帧平均值的样本标准差（ddof=1）和有效帧数。
-- `*_std_blocks`：连续50个分析帧的组平均值之间的样本标准差。
-- `*_sem_blocks`：组平均值的SD除以有效组数的平方根；通常15组。
-- 原字段 `*_std`、`*_count` 保留，仍分别表示组平均值的SD、有效组数。
-- `n_frames`、`n_blocks`、`block_frames_min/max`：实际帧数、组数、最短/最长组的帧数。
+- 把珠按周期位置放回盒内，沿 z 每 **0.1 nm** 分箱。
+- 每箱珠数除以链长和箱体积，换算成链当量浓度 mM，再对所有选中帧等权平均。它不是质量密度，也不是链中心直方图。
+- 中心箱及左右各5箱，共 **11箱、约1.1 nm** 的平均密度作为峰高 h。
+- 从中心向右找首个密度严格低于 h/2 的箱，其中心位置定义半高半宽 w；浓相核心半宽为 **0.6 × w**。不拟合、不插值，也不是找峰高60%的位置。
+- 每帧按整链几何中心分类：相对盒中心的周期 z 位移满足 **|Δz| < 0.6w**，该链属于浓相。左侧穿越位置仅供查看，不参与边界计算。
 
-均值直接从帧级结果计算，不依赖分组长度。50帧是当前分组设置，尚不能据此认定各组独立；分组SEM是同一轨迹内的误差估计，使用于正式推断前需检查相关时间或分组长度稳定性。逐帧SD描述时间波动，不能与SEM互换。notebook 02、03原有的时间块SD波动带继续保留。
+中心峰高不足1 mM或没有有效穿越时失败，**不回退到固定宽度**。当前不定义稀相，“非浓相”不等于稀相。
 
-`contacts_per_partner`仍是各链接触数/伙伴数比值的平均，再进行帧平均；不是两个总体均值之比。零伙伴链的比值为NaN，仅此指标排除这些链。帧级表中 `n_valid_contacts_per_partner` 记录有效链数，汇总表的有效帧/组数可能少于750/15；完全没有有效值时，该指标及误差保留NaN。
+### 分子内：链内接触如何组织
 
-更新代码后，运行 `python 02_compute.py`（不加 `--force`）即可复用现有逐链CSV与NPZ，更新帧级表、汇总表和既有分布表；然后从notebook目录重启内核，重新运行notebook 01。无需重新居中或计算接触。本次代码修改本身不会更新已有结果CSV或图片，重跑前它们仍是旧版产物。
+同链残基珠的周期最小镜像距离严格 **<0.7 nm**，且序列间隔 **>2**，记为接触。按链内顺序索引，每对 i–j 只计一次。
 
-## 文件夹位置与依赖文件
+| 指标 | 定义 |
+|---|---|
+| 接触数 E | 每条链的唯一接触对数 |
+| 度分布 P(k) | 接触了 k 个其他残基的残基比例，包含 k=0；平均度为 2E/N |
+| 最大接触簇占比 | 最大连通分量的残基数 / 链长 N |
+| 全局效率（辅助） | 对不同残基对平均最短接触路径长度的倒数；不连通贡献0 |
+| 接触概率图 | 同一序列位置对接触的帧内链平均，再对有效帧平均 |
 
-分析文件夹可以整体移动，只需保持 `centered/`、`results/`、`figures/` 与 `notebook/` 的相对关系。原始数据路径不会自动改变，因为 `DATA_ROOT` 是绝对路径。
+每帧每条链单独建无向无权网络，包含全部残基，**不加入主链边**。无接触时 E=0、P(0)=1、效率=0、最大簇占比=1/N。分别统计全体系和浓相。
 
-`dependencies/center_local.py` 由第一步调用；`dependencies/partner_analysis.py` 和 `dependencies/contact_persistence_test.py` 由第二步调用。正常流程只运行顶层的两个脚本和所需 notebook，无需单独运行依赖文件。脚本使用临时英文路径处理 DCD，以兼容含日文字符的目录名。
+这些指标描述接触组织，不代表稳定折叠或物理传递效率。序列弧线图显示瞬时接触位置；时间平均概率图不能当作某个真实瞬时网络。
 
-### 接触距离的边界约定
+### 分子间：接触量、伙伴广度与网络
 
-残基接触采用严格 `d < 1.0 nm`。邻域搜索先取得候选点对，再用周期边界下的最小镜像距离排除恰好等于阈值的点对；伙伴链与网络边仍采用接触组数 `>= m`。本次对现有三组各750帧逐一核验，严格边界修正未改变任何链对接触计数，因此现有CSV、NPZ和结果数值可继续使用。以后若修改距离、稠相边界或轨迹，应使用 `--force` 重新计算。
+不同链 a、b 之间，距离严格 **<0.7 nm** 的残基对数记为 Wab。底层保存全部链对；下列统计只使用**双方均属浓相**的链对。
+
+| 指标 | 定义 |
+|---|---|
+| 每链总接触数 Ca | 与其他浓相链的 Wab 之和 |
+| 伙伴数 Ka(m) | 满足 Wab ≥ m 的不同链数，m默认1、5、10 |
+| 每伙伴接触比值 | Ca/Ka(m)，零伙伴时为 NaN |
+| 伙伴数分布 | 每帧各伙伴数的链比例，再对有效帧平均，包含零伙伴 |
+| 最大连通分量比例 | 最大接触簇链数 / 全部浓相链数，包含孤立链 |
+| 全局效率 | 对不同链对平均最短网络路径长度的倒数；不连通贡献0 |
+
+网络节点是链，Wab ≥ m 时连接无向无权边，网络阈值为 **1、5、10、20、30、35**。路径长度计边数，不是空间距离。无浓相节点时两项网络指标为 NaN；只有一条链时效率为 NaN、最大分量比例为1。
+
+接触比值的分子包含全部浓相接触，未筛掉低于伙伴阈值的接触。例如与三条链有12、3、1对接触，阈值5时伙伴数为1，比值是16而非12。体系所有链的 Ca 求和会把链间接触计两次。
+
+## 5. 平均方式与输出
+
+**逐链计算 → 帧内所选链等权平均 → 有效帧等权平均。** 网络指标不从跨帧合并的边计算；浓相链多的帧不额外加权。度分布先在每条链内归一化，再按上述顺序平均。
+
+- 0：有样本但无接触；NaN：无浓相链、无有效比值或样本不足。
+- `*_mean_frames`、`*_std_frames`、`*_count_frames`：帧均值的平均、样本SD、有效帧数。
+- 每50个分析帧为一块，保存块均值及块间SD、`SEM=块间SD/√有效块数`；少于两块时SD/SEM为NaN。总体均值直接从帧计算，不受末块长度影响。
+- 时间块不是独立模拟重复，固定50帧不保证独立。分子内节点是残基，分子间节点是链，适合比较变化趋势，不直接比较网络指标绝对大小。
+
+各模块输出到自己的 `output/<模拟编号>/`：
+
+| 模块 | 主要文件 |
+|---|---|
+| 居中 | `centered.dcd`、`topology.pdb`、`chains.json`、`frame_index.csv`、居中平移记录 |
+| 边界 | `density_profile.csv`、`boundary.json` |
+| 分子内 | `chain_contacts.csv.gz`、`contact_map.npz`、`degree_distribution/`、`edges/` |
+| 分子间 | `chain_partners.csv.gz`、伙伴分布表、`network_frames.csv`、`network/`、`edges/` |
+
+两类接触另有 `frame_means.csv`、`summary.csv`、`block_means.csv`。各模块保存 `metadata.json`（参数及上游来源）和成功后的 `COMPLETE`。帧号和残基索引从0开始，原始帧号及时间来自第一步。
+
+## 6. 覆盖与失败
+
+开始计算时清空本模块该模拟的旧输出；成功后才生成 `COMPLETE`。失败/中断的目录不可作为完成结果，重新运行对应模块即可。上游变化后，下游和图片需手动按顺序重算。
+
+批量结束打印 `SUCCESS`、`FAILED`、`SKIPPED` 汇总；失败日志包含模拟编号、模块和原因。边界失败跳过两类接触；分子内外彼此失败不互相阻断。任一失败返回非零退出码。qsub 提交成功不等于计算成功，需查看作业日志。
+
+不提供锁、自动复用、历史代次或自动依赖调度。不要同时读写同模块的同一模拟目录。旧 `centered/`、`results/`、`figures/` 保留，不能直接作为新版产物。
+
+## 7. 逐步替代 ana_v4
+
+### 已覆盖和暂缺内容
+
+| 内容 | 当前情况 |
+|---|---|
+| 居中、平均密度、浓相核心边界 | 已有；无固定宽度回退 |
+| 分子内接触、分子间接触 | 已有；扩展残基网络、伙伴数和链网络 |
+| 稀相边界及浓/稀/过渡分层 | 尚缺，目前为全体系/浓相 |
+| 浓相浓度、稀相浓度/csat、contrast、CV、浓度比对数dG及误差 | 尚缺，密度剖面不等于这些标量已计算 |
+| Rg、序列κ/SCD | 尚缺 |
+| 软接触、电荷分类、分子间残基位置矩阵、稀相代表链接触 | 尚缺 |
+| 构象PCA、密度时间演化、跨指标比较等旧图 | 按需要迁移计算与绘图 |
+| 旧版完整性/收敛诊断 | 未整体迁移，不属于第一步居中的职责 |
+
+### 替代策略
+
+保留旧代码和旧结果作为参考。先跑通并固定当前接触分析，再按科研问题逐个增加同级模块：明确输入、定义和输出，验证后再替代旧版对应功能。暂不追求统一总表，也不整体搬入旧版总控或注册器。序列指标不依赖轨迹，无需强行依赖居中；正式计算放模块，Notebook只画图。
+
+### 新旧结果对照注意点
+
+以下为旧版默认/实现，实际运行可能被配置覆盖：
+
+| 项目 | 差异 |
+|---|---|
+| 取帧 | 旧版默认从轨迹四分之一开始，新版固定从750开始；核对真实原始帧号和抽帧间隔 |
+| 接触规则 | 旧版默认1.0 nm、分子内排除间隔≤3；新版0.7 nm、排除≤2；soft不能与二元count直接比较 |
+| 分子内计数 | 旧版对称矩阵求和包含i–j和j–i；新版每对一次。旧版展开坐标欧氏距离与新版周期最小镜像也可能不同 |
+| 分子间对象 | 旧版常规计算每帧中心代表链与所有其他链；新版伙伴/网络统计全部浓相链对，不能要求总量相等 |
+| 边界与密度 | 核对分箱、周期位置、峰高窗口和0.6系数；旧版固定宽度回退不等于测得边界 |
+| 平均与误差 | 旧版部分量合并链—帧样本；新版先帧内链平均。核对零/NaN、样本权重和分块方法 |
+
+先统一数据、帧、单位和定义，再核对结果。**同定义的差异需要排查；定义不同则记录方法变化。** 正式条件比较应统一采用同一套设置重算，不混用新旧标量或按文件排列顺序拼接。尚缺的旧版指标可暂时保留旧分析来源，不将其误标为新版结果。
+
+当前支持固定正交盒、每segment一条有序线性链、每残基一珠、等长链。数据和输出不纳入Git。

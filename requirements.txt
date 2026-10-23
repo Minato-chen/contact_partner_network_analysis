@@ -1,0 +1,11 @@
+# Python 3.10+. Use the same environment for calculation and provenance checks.
+MDAnalysis>=2.4,<3
+mdtraj>=1.9.9,<2
+numpy>=1.24,<3
+pandas>=1.5,<3
+scipy>=1.10,<2
+PyYAML>=6,<7
+# Notebook-only dependencies:
+matplotlib>=3.6,<4
+plotly>=5,<7
+jupyterlab>=3,<5

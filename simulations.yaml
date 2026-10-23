@@ -1,0 +1,19 @@
+# Relative input paths are resolved against data_root, relative to this YAML.
+# On a server, replace data_root or use an environment variable such as ${SLAB_DATA}.
+data_root: ..
+simulations:
+  - id: A18_T260
+    variant: A18
+    temperature_K: 260
+    topology: tau_k18_129aa_A18_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A18_T260_5/tau_k18_129aa_A18_T260_5.dcd
+  - id: B01_T260
+    variant: B01
+    temperature_K: 260
+    topology: tau_k18_129aa_B01_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B01_T260_5/tau_k18_129aa_B01_T260_5.dcd
+  - id: B10_T260
+    variant: B10
+    temperature_K: 260
+    topology: tau_k18_129aa_B10_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B10_T260_5/tau_k18_129aa_B10_T260_5.dcd
