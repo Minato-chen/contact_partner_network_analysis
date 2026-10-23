@@ -5,6 +5,7 @@ results/
 figures/
 __pycache__/
 *.py[cod]
-01_center/output/
-02_calculate/*/output/
+**/output/
 .ipynb_checkpoints/
+
+.legacy_stage2/
