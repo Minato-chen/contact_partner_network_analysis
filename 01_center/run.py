@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Stage 1: batch centering of simulations registered in simulations.yaml."""
+from importlib import import_module
 from pathlib import Path
 import sys
 import math
@@ -8,8 +9,8 @@ import shutil
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-import project
-import result_files as files
+from common import inputs
+from common import results as files
 from datetime import datetime, timezone
 
 # Sampling and centering parameters belong here, never in the raw simulation registry.
@@ -19,7 +20,7 @@ SIMULATIONS = None
 # Optional per-simulation overrides, for example {'A18_T260': {'start': 0}}.
 SIMULATION_PARAMETERS = {}
 OUTPUT = HERE / 'output'
-center_module = project.load_module('slab_center', HERE / 'dependencies/center_local.py')
+center_module = import_module('01_center.dependencies.center_local')
 
 
 def settings(simulation):
@@ -79,10 +80,10 @@ def calculate(simulation, output=OUTPUT):
 
 
 def main():
-    parser = project.parser(__doc__)
+    parser = inputs.parser(__doc__)
     parser.add_argument('--output-dir', type=Path, default=OUTPUT)
     args = parser.parse_args()
-    simulations = project.select_simulations(args.config, args.simulation or SIMULATIONS)
+    simulations = inputs.select_simulations(args.config, args.simulation or SIMULATIONS)
     for simulation in simulations:
         settings(simulation)
     failed = False
@@ -95,7 +96,7 @@ def main():
             failed = True
             outcomes.append((simulation['id'], ['FAILED']))
             print(f'[failed] {simulation["id"]}: {exc}', file=sys.stderr)
-    project.print_summary(outcomes, [HERE.name])
+    files.print_summary(outcomes, [HERE.name])
     return failed
 
 

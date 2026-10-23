@@ -9,3 +9,6 @@ __pycache__/
 .ipynb_checkpoints/
 
 .legacy_stage2/
+
+/03_results/*
+!/03_results/README.md
