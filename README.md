@@ -33,7 +33,7 @@ python -m jupyterlab
 ## 定义与使用说明
 
 - [居中](01_center/README.md)：选帧、单位与输出。
-- [基础指标](02_calculate/01_basic/README.md)：相界、Rg、κ、SCD、csat，以及单值指标的输出约定。
+- [基础指标](02_basic_calculate/README.md)：相界、Rg、κ、SCD、csat，以及单值指标的输出约定。
 - [接触分析](02_calculate/02_contacts/README.md)：子结构、对象、接触/伙伴/网络定义及独立运行方法。
 - [汇总](04_summary/README.md)：只运行run.py即可更新各课题表，不维护指标清单。
 - [绘图](05_plot/README.md)：Notebook与对象选择。

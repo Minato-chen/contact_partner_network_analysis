@@ -19,7 +19,7 @@ PARAMETERS = dict(
 )
 OUTPUT = HERE / "output"
 io = import_module("02_calculate.common.analysis_io")
-phase_entry = import_module("02_calculate.01_basic.phase_boundary")
+phase_entry = import_module("02_basic_calculate.phase_boundary")
 study = import_module("cutoff_comparison.dependencies.compare")
 
 
