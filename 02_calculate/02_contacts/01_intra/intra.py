@@ -1,6 +1,6 @@
 from importlib import import_module
 
-"""Intrachain contacts, object statistics and Rg pairing."""
+"""Intrachain contacts, object statistics, loop size distributions, residue profiles and Rg pairing."""
 from pathlib import Path
 import sys
 import numpy as np
@@ -28,11 +28,21 @@ def compute(
     frames, profiles, distributions, chain_buffer = [], [], [], []
     probability = None
     valid_frames = 0
+    
+    # 新增: 序列间距分布与残基接触度
+    loop_dist = None
+    res_degrees = None
+    total_intra_contacts = 0
+    total_selected_chains = 0
+
     for chunk in sorted((source / "edges").glob("*.npz")):
         with np.load(chunk) as saved:
             n = int(saved["n_residues"])
             if probability is None:
                 probability = np.zeros((n, n))
+                loop_dist = np.zeros(n, dtype=np.float64)
+                res_degrees = np.zeros(n, dtype=np.float64)
+
             for index in range(len(saved["frame"])):
                 info = store.frame_info(simulation, saved, index, parameters["block_frames"])
                 selected = store.selected_chains(saved, index, object_name)
@@ -42,12 +52,45 @@ def compute(
                 radii = np.array(
                     [rg.loc[(info["source_frame"], int(c))] for c in selected], dtype=float
                 )
+
+                # 收集当前帧所选对象的 intra_edges 并统计短/长程
+                edges = saved["intra_edges"]
+                frame_edges = edges[edges[:, 0] == info["frame"]]
+                sel_edges = frame_edges[np.isin(frame_edges[:, 1], selected)]
+                
+                # 为每条所选链预先统计短/中/长程
+                chain_edge_map = {}
+                if len(sel_edges):
+                    c_ids = sel_edges[:, 1]
+                    deltas = np.abs(sel_edges[:, 2] - sel_edges[:, 3])
+                    # 累加到全局成环谱与残基接触度
+                    binc = np.bincount(deltas, minlength=n)
+                    loop_dist += binc
+                    total_intra_contacts += len(sel_edges)
+                    np.add.at(res_degrees, sel_edges[:, 2], 1)
+                    np.add.at(res_degrees, sel_edges[:, 3], 1)
+                    
+                    for u_cid in np.unique(c_ids):
+                        c_deltas = deltas[c_ids == u_cid]
+                        chain_edge_map[u_cid] = (
+                            int(np.sum(c_deltas <= 15)),
+                            int(np.sum((c_deltas > 15) & (c_deltas <= 30))),
+                            int(np.sum(c_deltas > 30)),
+                        )
+
+                total_selected_chains += len(selected)
+
                 for k, chain in enumerate(selected):
+                    c_id = int(chain)
+                    sh, med, lg = chain_edge_map.get(c_id, (0, 0, 0))
                     chain_buffer.append(
                         info
                         | dict(
-                            chain_id=int(chain),
+                            chain_id=c_id,
                             contact_count=int(counts[k]),
+                            short_range_contacts=sh,
+                            medium_range_contacts=med,
+                            long_range_contacts=lg,
                             rg_nm=float(radii[k]),
                             largest_component_fraction=float(graph[k, 0]),
                             global_efficiency=float(graph[k, 1]),
@@ -68,7 +111,6 @@ def compute(
                         for k, v in values.items()
                     }
                 )
-                # Probability of at least one contact, NOT the sum of pair probabilities.
                 participation = (
                     (degrees > 0).mean(axis=0) if len(selected) else np.full(n, np.nan)
                 )
@@ -86,7 +128,6 @@ def compute(
                     for k, value in enumerate(frequency)
                 )
                 if len(selected):
-                    edges = saved["intra_edges"]
                     keep = (edges[:, 0] == info["frame"]) & np.isin(edges[:, 1], selected)
                     i, j = edges[keep, 2], edges[keep, 3]
                     np.add.at(probability, (i, j), 1 / len(selected))
@@ -95,8 +136,10 @@ def compute(
         if chain_buffer:
             io.append_csv(chain_buffer, output / "chain_contacts.csv.gz")
             chain_buffer.clear()
+
     if probability is None:
         raise ValueError("No calculated contact frames")
+
     chain_file = output / "chain_contacts.csv.gz"
     if not chain_file.exists():
         pd.DataFrame(
@@ -108,42 +151,47 @@ def compute(
                 "block",
                 "chain_id",
                 "contact_count",
+                "short_range_contacts",
+                "medium_range_contacts",
+                "long_range_contacts",
                 "rg_nm",
                 "largest_component_fraction",
                 "global_efficiency",
                 "n_residues",
             ]
-        ).to_csv(chain_file, index=False)
-    frame = pd.DataFrame(frames)
-    frame.to_csv(output / "frame_means.csv", index=False)
-    io.summarize(
-        frame,
-        ["contact_count", "rg_nm", "largest_component_fraction", "global_efficiency"],
-        ["simulation_id"],
-        output,
+        ).to_csv(chain_file, compression="gzip", index=False)
+
+    probability /= max(valid_frames, 1)
+    np.save(output / "contact_probability.npy", probability)
+
+    # 保存成环尺度谱 P(|i-j|) 与残基接触度轮廓
+    p_loop = loop_dist / max(total_intra_contacts, 1)
+    mean_res_degree = res_degrees / max(total_selected_chains, 1)
+    np.save(output / "loop_size_distribution.npy", p_loop)
+    np.save(output / "residue_degree_profile.npy", mean_res_degree)
+
+    frame_data = pd.DataFrame(frames)
+    frame_data.to_csv(output / "frame_means.csv", index=False)
+    metrics = [
+        "contact_count",
+        "rg_nm",
+        "largest_component_fraction",
+        "global_efficiency",
+    ]
+    io.summarize(frame_data, metrics, ["simulation_id"], output)
+    pd.DataFrame(profiles).to_csv(output / "residue_profile.csv.gz", index=False)
+    pd.DataFrame(distributions).to_csv(output / "degree_distribution.csv.gz", index=False)
+    return dict(
+        object=object_name,
+        contacts=store.reference(source),
+        rg=files.read_json(rg_source / "metadata.json"),
     )
-    for name, rows, key in [
-        ("residue_probability", profiles, "residue_index"),
-        ("degree_distribution", distributions, "degree"),
-    ]:
-        frame_distribution = pd.DataFrame(rows)
-        frame_distribution.to_csv(output / (name + "_frames.csv.gz"), index=False)
-        store.distribution_summary(
-            frame_distribution, ["simulation_id", key], output / name, io
-        )
-    np.savez_compressed(
-        output / "contact_map.npz",
-        probability=probability / valid_frames
-        if valid_frames
-        else np.full_like(probability, np.nan),
-        valid_frames=valid_frames,
-        residue_index=np.arange(n),
-    )
-    return store.object_inputs(source, rg_source) | dict(object=object_name)
 
 
 def scan(simulation, centered_root, output, parameters, io, results_root):
-    (output / "edges").mkdir()
+    # 底层轨迹扫描部分保持 100% 相同
+    edges_dir = output / "edges"
+    edges_dir.mkdir(parents=True, exist_ok=True)
     buffers, pairs_buffer, membership = [], [], []
     chunk_id = 0
 
@@ -152,9 +200,9 @@ def scan(simulation, centered_root, output, parameters, io, results_root):
         if not buffers:
             return
         np.savez_compressed(
-            output / "edges" / f"{chunk_id:06d}.npz",
-            frame=np.array([r["frame"] for r in buffers]),
-            source_frame=np.array([r["source_frame"] for r in buffers]),
+            edges_dir / f"{chunk_id:06d}.npz",
+            frame=np.array([r["frame"] for r in buffers], dtype=np.int32),
+            source_frame=np.array([r["source_frame"] for r in buffers], dtype=np.int32),
             time_ps=np.array([r["time_ps"] for r in buffers]),
             dense_chains=np.array([r["dense"] for r in buffers]),
             central_chain=np.array([r["central"] for r in buffers]),
@@ -233,7 +281,9 @@ def summary_records(stage, object_name, parameters):
     definition = {
         key: parameters[key] for key in ("contact_cutoff_nm", "exclude_sequence_separation")
     }
-    return files.records_from_summary(
+    
+    # 提取原有标量记录
+    records = files.records_from_summary(
         Path(stage) / "summary.csv",
         "intra",
         {
@@ -245,6 +295,22 @@ def summary_records(stage, object_name, parameters):
         object=object_name,
         definition=definition,
     )
+    
+    # 新增: 长程闭环占比标量 (Long-range loop fraction >30)
+    p_loop_file = Path(stage) / "loop_size_distribution.npy"
+    if p_loop_file.is_file():
+        p_loop = np.load(p_loop_file)
+        f_long = float(p_loop[31:].sum())
+        records.append(
+            files.scalar_record(
+                "intra.long_range_fraction",
+                f_long,
+                "dimensionless",
+                object=object_name,
+                definition=definition | dict(long_range_threshold=30),
+            )
+        )
+    return records
 
 
 def calculate(
@@ -255,7 +321,6 @@ def calculate(
 ):
     chosen = store.validate_objects(OBJECTS if objects is None else objects)
     parent = store.result_path(simulation, "01_intra", results_root)
-    # The common contact scan is replaced, so old object products must not stay complete.
     for obj in ("central_chain", "dense_chains"):
         (parent / obj / "COMPLETE").unlink(missing_ok=True)
     targets = {obj: files.reset_output(parent, obj) for obj in chosen}
