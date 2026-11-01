@@ -17,3 +17,27 @@ simulations:
     temperature_K: 260
     topology: tau_k18_129aa_B10_T260_5/top.pdb
     trajectory: tau_k18_129aa_B10_T260_5/tau_k18_129aa_B10_T260_5.dcd
+
+  - id: A20_T260
+    variant: A20
+    temperature_K: 260
+    topology: tau_k18_129aa_A20_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A20_T260_5/tau_k18_129aa_A20_T260_5.dcd
+
+  - id: C04_T260
+    variant: C04
+    temperature_K: 260
+    topology: tau_k18_129aa_C04_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C04_T260_5/tau_k18_129aa_C04_T260_5.dcd
+
+  - id: B09_T260
+    variant: B09
+    temperature_K: 260
+    topology: tau_k18_129aa_B09_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B09_T260_5/tau_k18_129aa_B09_T260_5.dcd
+
+  - id: C22_T260
+    variant: C22
+    temperature_K: 260
+    topology: tau_k18_129aa_C22_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C22_T260_5/tau_k18_129aa_C22_T260_5.dcd
