@@ -36,10 +36,10 @@ SIM_MAP = {
 
 
 def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
-    """Plot slab density profile and dilute phase saturation concentration (Csat) with ample headroom and top legend."""
+    """Plot slab density profile and dilute phase saturation concentration (Csat) with ample headroom and clean top legend."""
     apply_nature_style()
     df = load_summary(object_name).set_index("variant")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.2, 3.0), gridspec_kw={"width_ratios": [1.1, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.4, 3.2), gridspec_kw={"width_ratios": [1.15, 1.0]})
     
     # Panel 1: Density profiles
     for var in ALL_VARIANTS:
@@ -53,7 +53,6 @@ def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
     ax1.set_xlim(-60, 60)
     ax1.set_ylim(0, 16)
     ax1.set_title("A. Slab Density Profiles", loc="left", fontweight="bold")
-    ax1.legend(loc="upper center", bbox_to_anchor=(0.5, 1.18), ncol=4, frameon=False, fontsize=6.8)
     
     # Panel 2: Csat bar chart
     csat_vals = np.array([df.loc[v, "csat (mM)"] for v in ALL_VARIANTS])
@@ -76,7 +75,10 @@ def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
     ax2.text(1.0, y_top, "Topic 1 (Blockiness)", ha="center", fontsize=6.8, color="#555555", fontweight="bold")
     ax2.text(4.5, y_top, "Topic 2 (Polarization)", ha="center", fontsize=6.8, color="#555555", fontweight="bold")
     
-    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    # Place unified shared legend at the top outside subplots
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.99), ncol=len(ALL_VARIANTS), frameon=False, fontsize=7.5)
+    plt.tight_layout(rect=[0, 0, 1, 0.88])
     if output_dir:
         save_figure(fig, "cross_topic_phase_behavior", output_dir)
     return fig
@@ -87,17 +89,17 @@ def plot_multivalent_tradeoff_map(object_name="dense_chains", output_dir=None):
     apply_nature_style()
     df = load_summary(object_name).set_index("simulation_id")
     
-    fig, ax = plt.subplots(figsize=(6.2, 4.4))
+    fig, ax = plt.subplots(figsize=(6.4, 4.4))
     
     # Precise collision-free label offsets (dx, dy in points)
     offsets = {
-        "A18": (-28, -16),  # Bottom-left
-        "B01": (10, 6),     # Top-right
-        "B10": (10, 8),     # Top-right
-        "A20": (-30, 8),    # Top-left
-        "C04": (10, -16),   # Bottom-right
-        "B09": (-32, -18),  # Bottom-left
-        "C22": (10, -14),   # Bottom-right
+        "A18": (10, -6),    # Right-down
+        "B01": (10, 6),     # Right-up
+        "B10": (10, 6),     # Right-up
+        "A20": (-12, -18),  # Left-down
+        "C04": (10, -14),   # Right-down
+        "B09": (-28, 8),    # Left-up
+        "C22": (10, 4),     # Right-up
     }
     
     for var in ALL_VARIANTS:
@@ -116,7 +118,7 @@ def plot_multivalent_tradeoff_map(object_name="dense_chains", output_dir=None):
             (x, y),
             textcoords="offset points",
             xytext=(dx, dy),
-            ha="center" if abs(dx) < 15 else ("right" if dx < 0 else "left"),
+            ha="right" if dx < 0 else "left",
             fontsize=7.5,
             fontweight="bold",
             color=COLORS_ALL[var],
@@ -124,8 +126,8 @@ def plot_multivalent_tradeoff_map(object_name="dense_chains", output_dir=None):
         )
 
     # Highlight Fluid Multivalent LLPS region (Top-Left)
-    ax.axvspan(0, 8.5, ymin=0.55, ymax=1.0, color="#E8F4F8", alpha=0.55, zorder=1)
-    ax.text(4.2, 11.2, "Fluid Multivalent\nPercolation (Low Csat)", ha="center", fontsize=7.2, color="#1D70B8", fontweight="bold")
+    ax.axvspan(0, 8.5, ymin=0.48, ymax=0.98, color="#E8F4F8", alpha=0.55, zorder=1)
+    ax.text(4.2, 12.2, "Fluid Multivalent\nPercolation (Low Csat)", ha="center", fontsize=7.2, color="#1D70B8", fontweight="bold")
 
     # Highlight Electrostatic Zipper Trap region (Bottom-Right)
     ax.axvspan(15, 23.5, ymin=0.22, ymax=0.68, color="#FBEAEB", alpha=0.55, zorder=1)
@@ -138,8 +140,8 @@ def plot_multivalent_tradeoff_map(object_name="dense_chains", output_dir=None):
     ax.set_ylabel("Effective intermolecular partners (partners / chain)")
     ax.set_title("Multivalent Phase Separation Landscape\n(Low Csat = Fluid Network, High Csat = Trapped/Shielded)", fontsize=8.5, fontweight="bold", pad=8)
     
-    ax.set_xlim(1, 24)
-    ax.set_ylim(1.5, 12.5)
+    ax.set_xlim(0, 24)
+    ax.set_ylim(1.2, 13.0)
     plt.tight_layout()
     if output_dir:
         save_figure(fig, "cross_topic_multivalent_tradeoff_map", output_dir)

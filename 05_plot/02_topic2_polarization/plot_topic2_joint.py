@@ -39,13 +39,23 @@ def plot_joint_contacts_balance(object_name="dense_chains", output_dir=None):
     inter_res = df["joint.inter_contacts_per_residue (contacts/residue)"].to_numpy()
     inter_sem = df["joint.inter_contacts_per_residue (contacts/residue) SEM"].to_numpy()
     
-    ax1.bar(x - width/2, intra_res, width, yerr=intra_sem, capsize=3, label="Intra / res", color="#A0AAB2", edgecolor="black", linewidth=0.6)
-    ax1.bar(x + width/2, inter_res, width, yerr=inter_sem, capsize=3, label="Inter / res", color=[COLORS_TOPIC2[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
+    from matplotlib.patches import Patch
+    var_colors = [COLORS_TOPIC2[v] for v in VARIANTS]
+    for i in range(len(VARIANTS)):
+        ax1.bar(x[i] - width/2, intra_res[i], width, yerr=intra_sem[i], capsize=3,
+                color=var_colors[i], alpha=0.45, hatch="//", edgecolor="black", linewidth=0.6)
+        ax1.bar(x[i] + width/2, inter_res[i], width, yerr=inter_sem[i], capsize=3,
+                color=var_colors[i], alpha=1.0, edgecolor="black", linewidth=0.6)
+        
     ax1.set_xticks(x)
     ax1.set_xticklabels(VARIANTS)
     ax1.set_ylabel("Contacts / residue")
     ax1.set_title("A. Intra vs Inter per residue", loc="left", fontweight="bold")
-    ax1.legend(frameon=False, fontsize=7)
+    proxy_handles = [
+        Patch(facecolor="#888888", alpha=0.45, hatch="//", edgecolor="black", linewidth=0.6, label="Intra / res"),
+        Patch(facecolor="#888888", alpha=1.0, edgecolor="black", linewidth=0.6, label="Inter / res"),
+    ]
+    ax1.legend(handles=proxy_handles, frameon=False, fontsize=7)
     max_c = max(max(intra_res + intra_sem), max(inter_res + inter_sem))
     ax1.set_ylim(0, max_c * 1.30)
 

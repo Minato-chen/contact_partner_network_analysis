@@ -40,11 +40,11 @@ COLORS_TOPIC2 = {
 
 COLORS_ALL = {**COLORS_TOPIC1, **COLORS_TOPIC2}
 
-# Charge decomposition colors
+# Distinct charge decomposition colors (chosen to never collide with variant colors)
 CHARGE_COLORS = {
-    "attract": "#1D70B8",  # Attractive (+/-): Blue
-    "repulse": "#D95F02",  # Repulsive (+/+, -/-): Orange
-    "neutral": "#B0B0B0",  # Neutral: Gray
+    "attract": "#2B4C6F",  # Opposite-charge (+/-): Deep slate navy
+    "repulse": "#B83A4B",  # Same-charge (+/+, -/-): Crimson rose
+    "neutral": "#B5B8BE",  # Neutral: Soft silver gray
 }
 
 # Variant metadata with Csat

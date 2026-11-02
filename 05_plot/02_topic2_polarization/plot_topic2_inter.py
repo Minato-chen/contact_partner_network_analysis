@@ -28,7 +28,7 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=2)
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.2, 2.7), gridspec_kw={"width_ratios": [1.4, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.4, 3.1), gridspec_kw={"width_ratios": [1.4, 1.0]})
     
     x = np.arange(len(VARIANTS))
     width = 0.55
@@ -40,7 +40,7 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     fracs = df["inter.attract_fraction (dimensionless)"].to_numpy() * 100
     frac_sems = df["inter.attract_fraction (dimensionless) SEM"].to_numpy() * 100
     
-    # Panel 1: Stacked Bar Chart
+    # Panel 1: Stacked Bar Chart with dedicated electrostatic colors
     ax1.bar(x, attract, width, label="Opposite-charge (+/-)", color=CHARGE_COLORS["attract"], edgecolor="black", linewidth=0.5)
     ax1.bar(x, repulse, width, bottom=attract, label="Same-charge (+/+, -/-)", color=CHARGE_COLORS["repulse"], edgecolor="black", linewidth=0.5)
     ax1.bar(x, neutral, width, bottom=attract + repulse, label="Neutral", color=CHARGE_COLORS["neutral"], edgecolor="black", linewidth=0.5)
@@ -51,9 +51,9 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     ax1.set_xticks(x)
     ax1.set_xticklabels(VARIANTS)
     ax1.set_ylabel("Inter contacts (pairs/chain)")
-    ax1.set_title("A. Contact charge decomposition", loc="left", fontweight="bold")
+    ax1.set_title("A. Contact charge decomposition", loc="left", fontweight="bold", pad=20)
     ax1.set_ylim(0, max(totals) * 1.35)
-    ax1.legend(loc="upper left", bbox_to_anchor=(0.0, 1.15), ncol=3, fontsize=6.8, frameon=False)
+    ax1.legend(loc="lower left", bbox_to_anchor=(0.0, 1.02), ncol=3, fontsize=6.8, frameon=False)
     
     # Panel 2: Attractive Fraction
     ax2.bar(x, fracs, width, yerr=frac_sems, capsize=3, color=[COLORS_TOPIC2[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
@@ -190,7 +190,7 @@ def plot_network_percolation(object_name="dense_chains", output_dir=None):
     df = filter_topic(load_summary(object_name), topic=2)
     
     thresholds = [1, 5, 10, 20, 30, 35]
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 2.8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.2, 3.1))
     
     for i, var in enumerate(VARIANTS):
         row = df[df["variant"] == var].iloc[0]
@@ -202,19 +202,23 @@ def plot_network_percolation(object_name="dense_chains", output_dir=None):
         ge_sems = [row[f"network.global_efficiency [threshold={t}] (dimensionless) SEM"] for t in thresholds]
         ax2.errorbar(thresholds, ge_vals, yerr=ge_sems, marker="s", label=var, color=COLORS_TOPIC2[var], capsize=2.5, linewidth=1.1)
 
+    ax1.set_xlim(-1, 37)
+    ax1.set_xticks(thresholds)
     ax1.set_xlabel("Threshold (contacts / pair)")
     ax1.set_ylabel("Largest component fraction")
     ax1.set_title("A. Network percolation", loc="left", fontweight="bold")
     ax1.set_ylim(-0.05, 1.15)
 
+    ax2.set_xlim(-1, 37)
+    ax2.set_xticks(thresholds)
     ax2.set_xlabel("Threshold (contacts / pair)")
     ax2.set_ylabel("Global efficiency")
     ax2.set_title("B. Network topological efficiency", loc="left", fontweight="bold")
-    ax2.set_ylim(-0.02, 0.40)
+    ax2.set_ylim(-0.02, 0.65)  # Extended headroom to prevent truncation (max GE ~0.53)
 
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.99), ncol=len(VARIANTS), frameon=False, fontsize=8.0)
-    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    plt.tight_layout(rect=[0, 0, 1, 0.88])
     
     if output_dir:
         save_figure(fig, "topic2_network_percolation", output_dir)
