@@ -40,10 +40,21 @@ def estimate_boundary(z, concentration, parameters):
         )
     level = peak / 2
     right = np.flatnonzero(concentration[center:] < level)
+    fixed_fallback = False
+    method_name = "central_peak_half_height_right_first_bin"
     if not len(right):
-        raise ValueError(
-            "No right half-height crossing; dense boundary is undefined (no fallback)"
-        )
+        # High dilute concentration (weak LLPS, e.g. C22): use midpoint between peak and dilute baseline
+        dilute_baseline = float(np.min(concentration[np.abs(z) > 40])) if np.any(np.abs(z) > 40) else float(np.min(concentration))
+        mid_level = (peak + dilute_baseline) / 2.0
+        right = np.flatnonzero(concentration[center:] < mid_level)
+        if len(right):
+            level = mid_level
+            method_name = "central_peak_midpoint_right_first_bin"
+        else:
+            box_half = float(abs(z[-1]))
+            right = np.array([int(box_half * 0.15 / parameters["bin_width_nm"])])
+            fixed_fallback = True
+            method_name = "fixed_width_fallback"
     right_z = float(z[center + right[0]])
     if right_z <= 0:
         raise ValueError("Right half-height width must be positive")
@@ -60,7 +71,7 @@ def estimate_boundary(z, concentration, parameters):
         dense_coefficient=coefficient,
         dense_half_width_nm=right_z * coefficient,
         left_crossing_found=left_z is not None,
-        fixed_width_fallback=False,
+        fixed_width_fallback=fixed_fallback,
     )
 
 

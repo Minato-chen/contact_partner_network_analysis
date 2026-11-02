@@ -3,15 +3,15 @@
 本仓库研究分子内、分子间接触及两者关系。原始数据只读，计算保存数值，汇总整理指标，Notebook负责绘图。
 
 ```text
-simulations.yaml   原始模拟编号、条件和文件路径
-01_center/         选帧、轨迹居中及整链重建
+simulations.yaml      原始模拟编号、条件和文件路径
+01_center/            选帧、轨迹居中及整链重建
+02_basic_calculate/   基础指标：相界、Rg、κ、SCD、csat
 02_calculate/
-  01_basic/        基础指标：相界、Rg、κ、SCD、csat；一个指标一个py
-  02_contacts/     接触课题：分子内、分子间、联合分析
-03_results/        第一层是模拟编号，内部分类与02一致
-04_summary/        读取03，按课题生成每模拟一行的对比表
-05_plot/           Notebook与图片，分类对应02
-common/            模拟清单读取、结果文件和状态打印工具
+  01_contacts/        接触课题：分子内、分子间、联合分析
+03_results/           第一层是模拟编号，内部分类与计算模块对应
+04_summary/           读取03，按课题生成每模拟一行的对比表
+05_plot/              按课题分类 (Topic 1、Topic 2、全景总览)，交互Notebook与纯PNG高分学术配图
+common/               模拟清单读取、结果文件和状态打印工具
 ```
 
 ## 运行
@@ -32,18 +32,21 @@ python -m jupyterlab
 
 ## 定义与使用说明
 
-- [居中](01_center/README.md)：选帧、单位与输出。
-- [基础指标](02_basic_calculate/README.md)：相界、Rg、κ、SCD、csat，以及单值指标的输出约定。
-- [接触分析](02_calculate/02_contacts/README.md)：子结构、对象、接触/伙伴/网络定义及独立运行方法。
-- [汇总](04_summary/README.md)：只运行run.py即可更新各课题表，不维护指标清单。
-- [绘图](05_plot/README.md)：Notebook与对象选择。
+- [居中](01_center/CENTER_README.md)：选帧、单位与输出。
+- [基础指标](02_basic_calculate/BASIC_CALCULATE_README.md)：相界、Rg、κ、SCD、csat，以及单值指标的输出约定。
+- [接触分析](02_calculate/01_contacts/CONTACTS_README.md)：子结构、对象、接触/伙伴/网络定义及独立运行方法。
+- [汇总](04_summary/SUMMARY_README.md)：只运行run.py即可更新各课题表，不维护指标清单。
+- [绘图](05_plot/PLOT_README.md)：Notebook与对象选择。
+- [数值结果](03_results/RESULTS_README.md)：数值结果分类与保存规范。
+
+## 运行与依赖
 
 计算成功后写COMPLETE和metadata.json；失败或上游缺失会打印FAILED/SKIPPED，返回非零。上游改变后按依赖顺序重算下游；不要同时读写同一计算结果。
 
 ## 服务器与后续扩充
 
-jobs/pbs.sh、grid_engine.sh分别支持STAGE=01_center或02_calculate；CONTACT_PYTHON指定服务器Python，SIMULATION可选。先确认01成功再运行02。04汇总等计算结束后单独执行，不在并行计算中共同写总表。
+jobs/pbs.sh、grid_engine.sh分别支持STAGE=01_center、02_basic_calculate或02_calculate；CONTACT_PYTHON指定服务器Python，SIMULATION可选。先确认01成功再运行02。04汇总等计算结束后单独执行，不在并行计算中共同写总表。
 
-csat采用上游半高距离w之外的`|z|>2w`区域，输出逐帧浓度、均值与块SEM。未来新增基础指标文件即可。新课题与02_contacts并列，在03采用同名分类并输出汇总记录，04自动产生新表。cutoff_comparison是可独立删除的四距离对照，正式接触定义目前严格<0.8 nm。
+csat采用上游半高距离w之外的`|z|>2w`区域，输出逐帧浓度、均值与块SEM。未来新增基础指标文件即可。新课题与01_contacts并列，在03采用同名分类并输出汇总记录，04自动产生新表。cutoff_comparison是可独立删除的四距离对照，正式接触定义目前严格<0.8 nm。
 
 相比ana_v4，还未补齐contrast/CV/dG、电荷分类、软接触和部分图形。逐项替代前统一原始帧、单位、距离、序列排除、对象与平均方式。旧版中心链常对所有链，新版仅对其他浓相链；旧版链内矩阵可能双向计数，新版每对一次，不能直接要求总量相等。

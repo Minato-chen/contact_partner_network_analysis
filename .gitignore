@@ -11,4 +11,5 @@ __pycache__/
 .legacy_stage2/
 
 /03_results/*
-!/03_results/README.md
+!/03_results/RESULTS_README.md
+!/03_results/verify_results.py

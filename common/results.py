@@ -46,7 +46,7 @@ def completed(path, hint=None):
                     if stage == "01_basic":
                         msg += f"；请先运行: python 02_basic_calculate/run.py --simulation {parts[0]}"
                     elif stage == "02_contacts":
-                        msg += f"；请先运行: python 02_calculate/02_contacts/run.py --simulation {parts[0]}"
+                        msg += f"；请先运行: python 02_calculate/01_contacts/run.py --simulation {parts[0]}"
             except Exception:
                 pass
         raise InputUnavailable(msg)
