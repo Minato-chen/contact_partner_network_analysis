@@ -2,7 +2,6 @@
 centered/
 results/
 .DS_Store
-figures/
 __pycache__/
 *.py[cod]
 **/output/
@@ -13,3 +12,7 @@ __pycache__/
 /03_results/*
 !/03_results/RESULTS_README.md
 !/03_results/verify_results.py
+
+# Strictly exclude non-PNG figure formats (PDF, SVG)
+*.pdf
+*.svg
