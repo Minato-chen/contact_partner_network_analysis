@@ -28,7 +28,7 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=1)
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.5, 2.6), gridspec_kw={"width_ratios": [1.4, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.8, 2.7), gridspec_kw={"width_ratios": [1.4, 1.0]})
     
     x = np.arange(len(VARIANTS))
     width = 0.55
@@ -52,8 +52,8 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     ax1.set_xticklabels(VARIANTS)
     ax1.set_ylabel("Inter contacts (pairs/chain)")
     ax1.set_title("A. Contact charge decomposition", loc="left", fontweight="bold")
-    ax1.set_ylim(0, max(totals) * 1.30)
-    ax1.legend(loc="upper left", fontsize=7, frameon=False)
+    ax1.set_ylim(0, max(totals) * 1.35)
+    ax1.legend(loc="upper left", bbox_to_anchor=(0.0, 1.15), ncol=3, fontsize=6.8, frameon=False)
     
     # Panel 2: Attractive Fraction
     ax2.bar(x, fracs, width, yerr=frac_sems, capsize=3, color=[COLORS_TOPIC1[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
@@ -63,7 +63,7 @@ def plot_inter_charge_decomposition(object_name="dense_chains", output_dir=None)
     ax2.set_xticklabels(VARIANTS)
     ax2.set_ylabel("Opposite-charge fraction (%)")
     ax2.set_title("B. Attractive contact fraction", loc="left", fontweight="bold")
-    ax2.set_ylim(0, max(fracs + frac_sems) * 1.30)
+    ax2.set_ylim(0, max(fracs + frac_sems) * 1.35)
     
     plt.tight_layout()
     if output_dir:
@@ -76,7 +76,7 @@ def plot_partners_and_max_adhesion(object_name="dense_chains", output_dir=None):
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=1)
     
-    fig, axes = plt.subplots(1, 3, figsize=(8.0, 2.6))
+    fig, axes = plt.subplots(1, 3, figsize=(8.2, 2.7))
     
     x = np.arange(len(VARIANTS))
     width = 0.55
@@ -92,7 +92,7 @@ def plot_partners_and_max_adhesion(object_name="dense_chains", output_dir=None):
     ax.set_xticklabels(VARIANTS)
     ax.set_ylabel("Partner chains (count)")
     ax.set_title("A. Multivalent partners", loc="left", fontweight="bold")
-    ax.set_ylim(0, max(p_cnt + p_sem) * 1.30)
+    ax.set_ylim(0, max(p_cnt + p_sem) * 1.35)
 
     # Panel 2: Single-partner Max Attractive Contacts
     ax = axes[1]
@@ -105,7 +105,7 @@ def plot_partners_and_max_adhesion(object_name="dense_chains", output_dir=None):
     ax.set_xticklabels(VARIANTS)
     ax.set_ylabel("Max attract contacts / partner")
     ax.set_title("B. Peak two-body adhesion", loc="left", fontweight="bold")
-    ax.set_ylim(0, max(max_att + max_sem) * 1.30)
+    ax.set_ylim(0, max(max_att + max_sem) * 1.35)
 
     # Panel 3: Trade-off Scatter (Partners vs Peak Adhesion)
     ax = axes[2]
@@ -121,23 +121,24 @@ def plot_partners_and_max_adhesion(object_name="dense_chains", output_dir=None):
             ecolor=COLORS_TOPIC1[v],
             markersize=7,
             capsize=3,
-            label=f"{v} (Csat={csat_vals[i]:.2f} mM)",
         )
+        # Avoid collision with points
+        dx = 7 if v != "B10" else -28
+        dy = 2 if v != "B10" else -14
         ax.annotate(
-            v,
+            f"{v}\n({csat_vals[i]:.2f} mM)",
             (p_cnt[i], max_att[i]),
             textcoords="offset points",
-            xytext=(7, 2),
-            fontsize=8,
+            xytext=(dx, dy),
+            fontsize=7.5,
             fontweight="bold",
             color=COLORS_TOPIC1[v],
         )
     ax.set_xlabel("Partner count (chains)")
     ax.set_ylabel("Max attract contacts / partner")
     ax.set_title("C. Multivalency vs Adhesion", loc="left", fontweight="bold")
-    ax.legend(loc="upper left", fontsize=6.5, frameon=False)
-    ax.set_xlim(min(p_cnt) - 1.2, max(p_cnt) + 1.8)
-    ax.set_ylim(0, max(max_att + max_sem) * 1.30)
+    ax.set_xlim(min(p_cnt) - 1.5, max(p_cnt) + 1.8)
+    ax.set_ylim(0, max(max_att + max_sem) * 1.35)
 
     plt.tight_layout()
     if output_dir:
@@ -146,10 +147,10 @@ def plot_partners_and_max_adhesion(object_name="dense_chains", output_dir=None):
 
 
 def plot_partner_distribution_pmf(object_name="dense_chains", output_dir=None):
-    """Plot full partner count probability mass function (PMF) distribution curves with block SD shading."""
+    """Plot full partner count probability mass function (PMF) distribution curves with block SD shading and clean top legend."""
     apply_nature_style()
     thresholds = [1, 5, 10]
-    fig, axes = plt.subplots(1, len(thresholds), figsize=(8.5, 2.7), sharey=True)
+    fig, axes = plt.subplots(1, len(thresholds), figsize=(8.8, 2.9), sharey=True)
     
     for idx, thresh in enumerate(thresholds):
         ax = axes[idx]
@@ -171,32 +172,32 @@ def plot_partner_distribution_pmf(object_name="dense_chains", output_dir=None):
         ax.set_title(f"Threshold ≥ {thresh} contacts", fontsize=8.0, fontweight="bold")
         if idx == 0:
             ax.set_ylabel("Frame probability (PMF)")
-            ax.legend(frameon=False, fontsize=7, loc="upper right")
             
-    plt.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.99), ncol=len(VARIANTS), frameon=False, fontsize=8.0)
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    
     if output_dir:
         save_figure(fig, "topic1_inter_partner_distribution_pmf", output_dir)
     return fig
 
 
 def plot_network_percolation(object_name="dense_chains", output_dir=None):
-    """Plot network global efficiency and largest component across thresholds."""
+    """Plot network global efficiency and largest component across thresholds with clean top legend."""
     if object_name != "dense_chains":
         return None
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=1)
     
     thresholds = [1, 5, 10, 20, 30, 35]
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.5, 2.6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.8, 2.8))
     
     for i, var in enumerate(VARIANTS):
         row = df[df["variant"] == var].iloc[0]
-        # Largest component fractions
         lc_vals = [row[f"network.largest_component_fraction [threshold={t}] (dimensionless)"] for t in thresholds]
         lc_sems = [row[f"network.largest_component_fraction [threshold={t}] (dimensionless) SEM"] for t in thresholds]
         ax1.errorbar(thresholds, lc_vals, yerr=lc_sems, marker="o", label=var, color=COLORS_TOPIC1[var], capsize=2.5, linewidth=1.1)
         
-        # Global efficiency
         ge_vals = [row[f"network.global_efficiency [threshold={t}] (dimensionless)"] for t in thresholds]
         ge_sems = [row[f"network.global_efficiency [threshold={t}] (dimensionless) SEM"] for t in thresholds]
         ax2.errorbar(thresholds, ge_vals, yerr=ge_sems, marker="s", label=var, color=COLORS_TOPIC1[var], capsize=2.5, linewidth=1.1)
@@ -205,15 +206,16 @@ def plot_network_percolation(object_name="dense_chains", output_dir=None):
     ax1.set_ylabel("Largest component fraction")
     ax1.set_title("A. Network percolation", loc="left", fontweight="bold")
     ax1.set_ylim(-0.05, 1.15)
-    ax1.legend(frameon=False, fontsize=7)
 
     ax2.set_xlabel("Threshold (contacts / pair)")
     ax2.set_ylabel("Global efficiency")
     ax2.set_title("B. Network topological efficiency", loc="left", fontweight="bold")
     ax2.set_ylim(-0.02, max(ge_vals) * 1.35)
-    ax2.legend(frameon=False, fontsize=7)
 
-    plt.tight_layout()
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.99), ncol=len(VARIANTS), frameon=False, fontsize=8.0)
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    
     if output_dir:
         save_figure(fig, "topic1_network_percolation", output_dir)
     return fig

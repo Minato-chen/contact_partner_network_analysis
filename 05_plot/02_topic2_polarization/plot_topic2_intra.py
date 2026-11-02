@@ -1,7 +1,7 @@
 """Topic 2 (Polarization & Neutral Tail: A20, C04, B09, C22) Intramolecular Analysis Plots.
 Features:
 1. Intra contacts, Rg, and long-range fraction (|i-j| >= 12).
-2. 1D Residue contact probability profile & Loop size distribution.
+2. 1D Residue contact probability profile (full 0-1.0 range, block SD shading, top legend) & Loop size distribution.
 3. Intrachain topological network metrics (Largest component & Global efficiency).
 Exports strictly PNG figures (300 DPI).
 """
@@ -32,7 +32,7 @@ def plot_intra_rg_and_contacts(object_name="dense_chains", output_dir=None):
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=2)
     
-    fig, axes = plt.subplots(1, 3, figsize=(8.6, 2.6))
+    fig, axes = plt.subplots(1, 3, figsize=(8.8, 2.6))
     
     # Panel A: Intra Contact Count
     ax = axes[0]
@@ -41,7 +41,7 @@ def plot_intra_rg_and_contacts(object_name="dense_chains", output_dir=None):
     bars = ax.bar(VARIANTS, vals, yerr=sems, capsize=3, color=[COLORS_TOPIC2[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
     ax.set_ylabel("Intra contacts (pairs/chain)")
     ax.set_title("A. Intrachain contacts", loc="left", fontweight="bold")
-    ax.set_ylim(0, max(vals + sems) * 1.32)
+    ax.set_ylim(0, max(vals + sems) * 1.35)
     for bar, val, sem in zip(bars, vals, sems):
         ax.text(bar.get_x() + bar.get_width()/2, val + sem + max(vals)*0.03, f"{val:.1f}", ha="center", va="bottom", fontsize=7.5)
 
@@ -52,7 +52,7 @@ def plot_intra_rg_and_contacts(object_name="dense_chains", output_dir=None):
     bars = ax.bar(VARIANTS, vals, yerr=sems, capsize=3, color=[COLORS_TOPIC2[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
     ax.set_ylabel(r"$R_g$ (nm)")
     ax.set_title(r"B. Radius of gyration $R_g$", loc="left", fontweight="bold")
-    ax.set_ylim(0, max(vals + sems) * 1.32)
+    ax.set_ylim(0, max(vals + sems) * 1.35)
     for bar, val, sem in zip(bars, vals, sems):
         ax.text(bar.get_x() + bar.get_width()/2, val + sem + max(vals)*0.03, f"{val:.2f}", ha="center", va="bottom", fontsize=7.5)
 
@@ -73,29 +73,34 @@ def plot_intra_rg_and_contacts(object_name="dense_chains", output_dir=None):
 
 
 def plot_residue_and_loop_profile(object_name="dense_chains", output_dir=None):
-    """Plot 1D residue contact probability profile & loop size distribution for Topic 2."""
+    """Plot 1D residue contact probability profile (full 0-1.0 range, block SD shading) & loop size distribution for Topic 2."""
     apply_nature_style()
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.5, 2.7))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 2.9))
     
     # Panel 1: 1D residue profile
     for var in VARIANTS:
         df_res = load_residue_profile(SIM_MAP[var], object_name)
-        ax1.plot(df_res["residue_index"], df_res["fraction"], label=var, color=COLORS_TOPIC2[var], linewidth=1.1)
+        x = (df_res["residue_index"] + 1).to_numpy(dtype=float)
+        y = df_res["mean"].to_numpy(dtype=float)
+        sd = df_res["std"].to_numpy(dtype=float)
+        
+        ax1.plot(x, y, label=var, color=COLORS_TOPIC2[var], linewidth=1.2)
+        ax1.fill_between(x, np.maximum(0.0, y - sd), np.minimum(1.0, y + sd), color=COLORS_TOPIC2[var], alpha=0.18)
         
     ax1.set_xlabel("Residue index (1–129)")
-    ax1.set_ylabel("Mean contact fraction")
+    ax1.set_ylabel("Contact probability (mean ± block SD)")
     ax1.set_title("A. Residue contact profile", loc="left", fontweight="bold")
     ax1.set_xlim(1, 129)
-    ax1.set_ylim(0, 0.45)
+    ax1.set_ylim(0, 1.0)  # Correct full probability range
     # Add annotation for C22 neutral tail (residues 1-60)
-    ax1.axvspan(1, 60, color="#F4A261", alpha=0.10, label="C22 Neutral Tail (1–60)")
-    ax1.legend(loc="upper right", frameon=False, fontsize=6.5)
+    ax1.axvspan(1, 60, color="#F4A261", alpha=0.12)
+    ax1.text(30, 0.92, "C22 Neutral Tail (1–60)", ha="center", fontsize=6.8, color="#B07D38", style="italic")
 
     # Panel 2: Loop size distribution (|i-j|)
     for var in VARIANTS:
         loop_dist = load_loop_size_distribution(SIM_MAP[var], object_name)
         seq_sep = np.arange(len(loop_dist))
-        ax2.plot(seq_sep[2:], loop_dist[2:], label=var, color=COLORS_TOPIC2[var], linewidth=1.1)
+        ax2.plot(seq_sep[2:], loop_dist[2:], label=var, color=COLORS_TOPIC2[var], linewidth=1.2)
 
     ax2.set_xlabel("Sequence separation $|i - j|$")
     ax2.set_ylabel("Contact probability")
@@ -103,9 +108,12 @@ def plot_residue_and_loop_profile(object_name="dense_chains", output_dir=None):
     ax2.set_xlim(2, 128)
     ax2.set_yscale("log")
     ax2.set_ylim(1e-4, 0.5)
-    ax2.legend(loc="upper right", frameon=False, fontsize=7)
 
-    plt.tight_layout()
+    # Place single shared legend at the top outside plots
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.99), ncol=len(VARIANTS), frameon=False, fontsize=8.0)
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    
     if output_dir:
         save_figure(fig, "topic2_residue_and_loop_profile", output_dir)
     return fig
@@ -116,7 +124,7 @@ def plot_intra_network_metrics(object_name="dense_chains", output_dir=None):
     apply_nature_style()
     df = filter_topic(load_summary(object_name), topic=2)
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.6, 2.5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.8, 2.6))
     
     # Panel 1: Largest component fraction
     vals = df["intra.largest_component_fraction (dimensionless)"].to_numpy()
@@ -134,7 +142,7 @@ def plot_intra_network_metrics(object_name="dense_chains", output_dir=None):
     bars = ax2.bar(VARIANTS, vals, yerr=sems, capsize=3, color=[COLORS_TOPIC2[v] for v in VARIANTS], edgecolor="black", linewidth=0.6)
     ax2.set_ylabel("Global efficiency")
     ax2.set_title("B. Intrachain network efficiency", loc="left", fontweight="bold")
-    ax2.set_ylim(0, max(vals + sems) * 1.32)
+    ax2.set_ylim(0, max(vals + sems) * 1.35)
     for bar, val, sem in zip(bars, vals, sems):
         ax2.text(bar.get_x() + bar.get_width()/2, val + sem + max(vals)*0.03, f"{val:.3f}", ha="center", va="bottom", fontsize=7.5)
 

@@ -63,13 +63,14 @@ def load_contact_matrix(simulation_id, object_name="dense_chains"):
 
 
 def load_residue_profile(simulation_id, object_name="dense_chains"):
-    """Load 1D residue-level mean contact participation probabilities."""
+    """Load 1D residue-level mean contact participation probabilities and block SD."""
     path = RESULTS_ROOT / simulation_id / f"02_contacts/01_intra/{object_name}/residue_profile.csv.gz"
     if not path.is_file():
         raise FileNotFoundError(f"Missing {path}")
     df = pd.read_csv(path)
-    means = df.groupby("residue_index")["fraction"].mean().reset_index()
-    return means
+    bm = df.groupby(["block", "residue_index"])["fraction"].mean().reset_index()
+    summary = bm.groupby("residue_index")["fraction"].agg(mean="mean", std="std").reset_index()
+    return summary
 
 
 def load_density_profile(simulation_id):

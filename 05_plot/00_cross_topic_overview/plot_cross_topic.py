@@ -2,7 +2,7 @@
 Synthesizes Topic 1 (A18, B01, B10) and Topic 2 (A20, C04, B09, C22).
 
 Figures:
-1. Phase Behavior Overview: Slab density profiles & Csat comparison bar chart.
+1. Phase Behavior Overview: Slab density profiles & Csat comparison bar chart (with clean top legend).
 2. Multivalent Trade-off Map: Partners vs Single-Partner Max Hetero Contacts vs Csat (with Anti-Collision).
 3. Comprehensive Descriptor Comparison: Multi-panel bar plots for structural, contact, partner, and network metrics.
 
@@ -36,10 +36,10 @@ SIM_MAP = {
 
 
 def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
-    """Plot slab density profile and dilute phase saturation concentration (Csat) with ample headroom."""
+    """Plot slab density profile and dilute phase saturation concentration (Csat) with ample headroom and top legend."""
     apply_nature_style()
     df = load_summary(object_name).set_index("variant")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.8), gridspec_kw={"width_ratios": [1.1, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.2, 3.0), gridspec_kw={"width_ratios": [1.1, 1.0]})
     
     # Panel 1: Density profiles
     for var in ALL_VARIANTS:
@@ -53,7 +53,7 @@ def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
     ax1.set_xlim(-60, 60)
     ax1.set_ylim(0, 16)
     ax1.set_title("A. Slab Density Profiles", loc="left", fontweight="bold")
-    ax1.legend(frameon=False, fontsize=6.5, ncol=2, loc="upper right")
+    ax1.legend(loc="upper center", bbox_to_anchor=(0.5, 1.18), ncol=4, frameon=False, fontsize=6.8)
     
     # Panel 2: Csat bar chart
     csat_vals = np.array([df.loc[v, "csat (mM)"] for v in ALL_VARIANTS])
@@ -76,7 +76,7 @@ def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
     ax2.text(1.0, y_top, "Topic 1 (Blockiness)", ha="center", fontsize=6.8, color="#555555", fontweight="bold")
     ax2.text(4.5, y_top, "Topic 2 (Polarization)", ha="center", fontsize=6.8, color="#555555", fontweight="bold")
     
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
     if output_dir:
         save_figure(fig, "cross_topic_phase_behavior", output_dir)
     return fig
@@ -87,7 +87,7 @@ def plot_multivalent_tradeoff_map(object_name="dense_chains", output_dir=None):
     apply_nature_style()
     df = load_summary(object_name).set_index("simulation_id")
     
-    fig, ax = plt.subplots(figsize=(6.0, 4.2))
+    fig, ax = plt.subplots(figsize=(6.2, 4.4))
     
     # Precise collision-free label offsets (dx, dy in points)
     offsets = {
