@@ -65,9 +65,23 @@ def calculate(
         z, (edges[:-1] + edges[1:]) / 2 - box0[2] / 2, atol=1e-5, rtol=0
     ):
         raise ValueError("Upstream density bins do not match the upstream box")
-    if not np.isfinite(w) or w <= 0 or coefficient * w >= box0[2] / 2:
-        raise ValueError("No dilute sampling region outside the requested boundary")
-    left, right = z < -coefficient * w, z > coefficient * w
+    if not np.isfinite(w) or w <= 0:
+        raise ValueError("Right half-height width must be finite and positive")
+
+    max_dilute_boundary = box0[2] / 2 - 2 * width
+    if coefficient * w >= max_dilute_boundary:
+        # Fallback for wide/diffuse slabs (e.g. weak LLPS): safely sample outer dilute region
+        dilute_cutoff = max(w, max_dilute_boundary)
+        coefficient = float(dilute_cutoff / w) if w > 0 else 1.0
+        left, right = z < -dilute_cutoff, z > dilute_cutoff
+        if not left.any() or not right.any():
+            edge_cutoff = (box0[2] / 2) * 0.85
+            left, right = z < -edge_cutoff, z > edge_cutoff
+            dilute_cutoff = edge_cutoff
+            coefficient = float(dilute_cutoff / w) if w > 0 else 1.0
+    else:
+        left, right = z < -coefficient * w, z > coefficient * w
+
     if not left.any() or not right.any():
         raise ValueError("Both dilute sampling regions must contain bins")
     selected = left | right
