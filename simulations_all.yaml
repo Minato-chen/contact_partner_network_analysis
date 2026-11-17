@@ -1,0 +1,573 @@
+# Full 114-variant configuration matching server slab_IDR directories (A00-A21, B01-B10, C00-C69, D00-D11)
+data_root: ..
+simulations:
+  - id: A00_T260
+    variant: A00
+    temperature_K: 260
+    topology: tau_k18_129aa_A00_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A00_T260_5/tau_k18_129aa_A00_T260_5.dcd
+  - id: A01_T260
+    variant: A01
+    temperature_K: 260
+    topology: tau_k18_129aa_A01_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A01_T260_5/tau_k18_129aa_A01_T260_5.dcd
+  - id: A02_T260
+    variant: A02
+    temperature_K: 260
+    topology: tau_k18_129aa_A02_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A02_T260_5/tau_k18_129aa_A02_T260_5.dcd
+  - id: A03_T260
+    variant: A03
+    temperature_K: 260
+    topology: tau_k18_129aa_A03_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A03_T260_5/tau_k18_129aa_A03_T260_5.dcd
+  - id: A04_T260
+    variant: A04
+    temperature_K: 260
+    topology: tau_k18_129aa_A04_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A04_T260_5/tau_k18_129aa_A04_T260_5.dcd
+  - id: A05_T260
+    variant: A05
+    temperature_K: 260
+    topology: tau_k18_129aa_A05_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A05_T260_5/tau_k18_129aa_A05_T260_5.dcd
+  - id: A06_T260
+    variant: A06
+    temperature_K: 260
+    topology: tau_k18_129aa_A06_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A06_T260_5/tau_k18_129aa_A06_T260_5.dcd
+  - id: A07_T260
+    variant: A07
+    temperature_K: 260
+    topology: tau_k18_129aa_A07_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A07_T260_5/tau_k18_129aa_A07_T260_5.dcd
+  - id: A08_T260
+    variant: A08
+    temperature_K: 260
+    topology: tau_k18_129aa_A08_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A08_T260_5/tau_k18_129aa_A08_T260_5.dcd
+  - id: A09_T260
+    variant: A09
+    temperature_K: 260
+    topology: tau_k18_129aa_A09_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A09_T260_5/tau_k18_129aa_A09_T260_5.dcd
+  - id: A10_T260
+    variant: A10
+    temperature_K: 260
+    topology: tau_k18_129aa_A10_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A10_T260_5/tau_k18_129aa_A10_T260_5.dcd
+  - id: A11_T260
+    variant: A11
+    temperature_K: 260
+    topology: tau_k18_129aa_A11_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A11_T260_5/tau_k18_129aa_A11_T260_5.dcd
+  - id: A12_T260
+    variant: A12
+    temperature_K: 260
+    topology: tau_k18_129aa_A12_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A12_T260_5/tau_k18_129aa_A12_T260_5.dcd
+  - id: A13_T260
+    variant: A13
+    temperature_K: 260
+    topology: tau_k18_129aa_A13_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A13_T260_5/tau_k18_129aa_A13_T260_5.dcd
+  - id: A14_T260
+    variant: A14
+    temperature_K: 260
+    topology: tau_k18_129aa_A14_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A14_T260_5/tau_k18_129aa_A14_T260_5.dcd
+  - id: A15_T260
+    variant: A15
+    temperature_K: 260
+    topology: tau_k18_129aa_A15_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A15_T260_5/tau_k18_129aa_A15_T260_5.dcd
+  - id: A16_T260
+    variant: A16
+    temperature_K: 260
+    topology: tau_k18_129aa_A16_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A16_T260_5/tau_k18_129aa_A16_T260_5.dcd
+  - id: A17_T260
+    variant: A17
+    temperature_K: 260
+    topology: tau_k18_129aa_A17_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A17_T260_5/tau_k18_129aa_A17_T260_5.dcd
+  - id: A18_T260
+    variant: A18
+    temperature_K: 260
+    topology: tau_k18_129aa_A18_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A18_T260_5/tau_k18_129aa_A18_T260_5.dcd
+  - id: A19_T260
+    variant: A19
+    temperature_K: 260
+    topology: tau_k18_129aa_A19_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A19_T260_5/tau_k18_129aa_A19_T260_5.dcd
+  - id: A20_T260
+    variant: A20
+    temperature_K: 260
+    topology: tau_k18_129aa_A20_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A20_T260_5/tau_k18_129aa_A20_T260_5.dcd
+  - id: A21_T260
+    variant: A21
+    temperature_K: 260
+    topology: tau_k18_129aa_A21_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A21_T260_5/tau_k18_129aa_A21_T260_5.dcd
+  - id: B01_T260
+    variant: B01
+    temperature_K: 260
+    topology: tau_k18_129aa_B01_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B01_T260_5/tau_k18_129aa_B01_T260_5.dcd
+  - id: B02_T260
+    variant: B02
+    temperature_K: 260
+    topology: tau_k18_129aa_B02_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B02_T260_5/tau_k18_129aa_B02_T260_5.dcd
+  - id: B03_T260
+    variant: B03
+    temperature_K: 260
+    topology: tau_k18_129aa_B03_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B03_T260_5/tau_k18_129aa_B03_T260_5.dcd
+  - id: B04_T260
+    variant: B04
+    temperature_K: 260
+    topology: tau_k18_129aa_B04_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B04_T260_5/tau_k18_129aa_B04_T260_5.dcd
+  - id: B05_T260
+    variant: B05
+    temperature_K: 260
+    topology: tau_k18_129aa_B05_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B05_T260_5/tau_k18_129aa_B05_T260_5.dcd
+  - id: B06_T260
+    variant: B06
+    temperature_K: 260
+    topology: tau_k18_129aa_B06_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B06_T260_5/tau_k18_129aa_B06_T260_5.dcd
+  - id: B07_T260
+    variant: B07
+    temperature_K: 260
+    topology: tau_k18_129aa_B07_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B07_T260_5/tau_k18_129aa_B07_T260_5.dcd
+  - id: B08_T260
+    variant: B08
+    temperature_K: 260
+    topology: tau_k18_129aa_B08_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B08_T260_5/tau_k18_129aa_B08_T260_5.dcd
+  - id: B09_T260
+    variant: B09
+    temperature_K: 260
+    topology: tau_k18_129aa_B09_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B09_T260_5/tau_k18_129aa_B09_T260_5.dcd
+  - id: B10_T260
+    variant: B10
+    temperature_K: 260
+    topology: tau_k18_129aa_B10_T260_5/top.pdb
+    trajectory: tau_k18_129aa_B10_T260_5/tau_k18_129aa_B10_T260_5.dcd
+  - id: C00_T260
+    variant: C00
+    temperature_K: 260
+    topology: tau_k18_129aa_C00_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C00_T260_5/tau_k18_129aa_C00_T260_5.dcd
+  - id: C01_T260
+    variant: C01
+    temperature_K: 260
+    topology: tau_k18_129aa_C01_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C01_T260_5/tau_k18_129aa_C01_T260_5.dcd
+  - id: C02_T260
+    variant: C02
+    temperature_K: 260
+    topology: tau_k18_129aa_C02_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C02_T260_5/tau_k18_129aa_C02_T260_5.dcd
+  - id: C03_T260
+    variant: C03
+    temperature_K: 260
+    topology: tau_k18_129aa_C03_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C03_T260_5/tau_k18_129aa_C03_T260_5.dcd
+  - id: C04_T260
+    variant: C04
+    temperature_K: 260
+    topology: tau_k18_129aa_C04_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C04_T260_5/tau_k18_129aa_C04_T260_5.dcd
+  - id: C05_T260
+    variant: C05
+    temperature_K: 260
+    topology: tau_k18_129aa_C05_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C05_T260_5/tau_k18_129aa_C05_T260_5.dcd
+  - id: C06_T260
+    variant: C06
+    temperature_K: 260
+    topology: tau_k18_129aa_C06_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C06_T260_5/tau_k18_129aa_C06_T260_5.dcd
+  - id: C07_T260
+    variant: C07
+    temperature_K: 260
+    topology: tau_k18_129aa_C07_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C07_T260_5/tau_k18_129aa_C07_T260_5.dcd
+  - id: C08_T260
+    variant: C08
+    temperature_K: 260
+    topology: tau_k18_129aa_C08_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C08_T260_5/tau_k18_129aa_C08_T260_5.dcd
+  - id: C09_T260
+    variant: C09
+    temperature_K: 260
+    topology: tau_k18_129aa_C09_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C09_T260_5/tau_k18_129aa_C09_T260_5.dcd
+  - id: C10_T260
+    variant: C10
+    temperature_K: 260
+    topology: tau_k18_129aa_C10_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C10_T260_5/tau_k18_129aa_C10_T260_5.dcd
+  - id: C11_T260
+    variant: C11
+    temperature_K: 260
+    topology: tau_k18_129aa_C11_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C11_T260_5/tau_k18_129aa_C11_T260_5.dcd
+  - id: C12_T260
+    variant: C12
+    temperature_K: 260
+    topology: tau_k18_129aa_C12_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C12_T260_5/tau_k18_129aa_C12_T260_5.dcd
+  - id: C13_T260
+    variant: C13
+    temperature_K: 260
+    topology: tau_k18_129aa_C13_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C13_T260_5/tau_k18_129aa_C13_T260_5.dcd
+  - id: C14_T260
+    variant: C14
+    temperature_K: 260
+    topology: tau_k18_129aa_C14_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C14_T260_5/tau_k18_129aa_C14_T260_5.dcd
+  - id: C15_T260
+    variant: C15
+    temperature_K: 260
+    topology: tau_k18_129aa_C15_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C15_T260_5/tau_k18_129aa_C15_T260_5.dcd
+  - id: C16_T260
+    variant: C16
+    temperature_K: 260
+    topology: tau_k18_129aa_C16_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C16_T260_5/tau_k18_129aa_C16_T260_5.dcd
+  - id: C17_T260
+    variant: C17
+    temperature_K: 260
+    topology: tau_k18_129aa_C17_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C17_T260_5/tau_k18_129aa_C17_T260_5.dcd
+  - id: C18_T260
+    variant: C18
+    temperature_K: 260
+    topology: tau_k18_129aa_C18_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C18_T260_5/tau_k18_129aa_C18_T260_5.dcd
+  - id: C19_T260
+    variant: C19
+    temperature_K: 260
+    topology: tau_k18_129aa_C19_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C19_T260_5/tau_k18_129aa_C19_T260_5.dcd
+  - id: C20_T260
+    variant: C20
+    temperature_K: 260
+    topology: tau_k18_129aa_C20_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C20_T260_5/tau_k18_129aa_C20_T260_5.dcd
+  - id: C21_T260
+    variant: C21
+    temperature_K: 260
+    topology: tau_k18_129aa_C21_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C21_T260_5/tau_k18_129aa_C21_T260_5.dcd
+  - id: C22_T260
+    variant: C22
+    temperature_K: 260
+    topology: tau_k18_129aa_C22_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C22_T260_5/tau_k18_129aa_C22_T260_5.dcd
+  - id: C23_T260
+    variant: C23
+    temperature_K: 260
+    topology: tau_k18_129aa_C23_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C23_T260_5/tau_k18_129aa_C23_T260_5.dcd
+  - id: C24_T260
+    variant: C24
+    temperature_K: 260
+    topology: tau_k18_129aa_C24_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C24_T260_5/tau_k18_129aa_C24_T260_5.dcd
+  - id: C25_T260
+    variant: C25
+    temperature_K: 260
+    topology: tau_k18_129aa_C25_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C25_T260_5/tau_k18_129aa_C25_T260_5.dcd
+  - id: C26_T260
+    variant: C26
+    temperature_K: 260
+    topology: tau_k18_129aa_C26_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C26_T260_5/tau_k18_129aa_C26_T260_5.dcd
+  - id: C27_T260
+    variant: C27
+    temperature_K: 260
+    topology: tau_k18_129aa_C27_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C27_T260_5/tau_k18_129aa_C27_T260_5.dcd
+  - id: C28_T260
+    variant: C28
+    temperature_K: 260
+    topology: tau_k18_129aa_C28_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C28_T260_5/tau_k18_129aa_C28_T260_5.dcd
+  - id: C29_T260
+    variant: C29
+    temperature_K: 260
+    topology: tau_k18_129aa_C29_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C29_T260_5/tau_k18_129aa_C29_T260_5.dcd
+  - id: C30_T260
+    variant: C30
+    temperature_K: 260
+    topology: tau_k18_129aa_C30_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C30_T260_5/tau_k18_129aa_C30_T260_5.dcd
+  - id: C31_T260
+    variant: C31
+    temperature_K: 260
+    topology: tau_k18_129aa_C31_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C31_T260_5/tau_k18_129aa_C31_T260_5.dcd
+  - id: C32_T260
+    variant: C32
+    temperature_K: 260
+    topology: tau_k18_129aa_C32_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C32_T260_5/tau_k18_129aa_C32_T260_5.dcd
+  - id: C33_T260
+    variant: C33
+    temperature_K: 260
+    topology: tau_k18_129aa_C33_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C33_T260_5/tau_k18_129aa_C33_T260_5.dcd
+  - id: C34_T260
+    variant: C34
+    temperature_K: 260
+    topology: tau_k18_129aa_C34_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C34_T260_5/tau_k18_129aa_C34_T260_5.dcd
+  - id: C35_T260
+    variant: C35
+    temperature_K: 260
+    topology: tau_k18_129aa_C35_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C35_T260_5/tau_k18_129aa_C35_T260_5.dcd
+  - id: C36_T260
+    variant: C36
+    temperature_K: 260
+    topology: tau_k18_129aa_C36_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C36_T260_5/tau_k18_129aa_C36_T260_5.dcd
+  - id: C37_T260
+    variant: C37
+    temperature_K: 260
+    topology: tau_k18_129aa_C37_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C37_T260_5/tau_k18_129aa_C37_T260_5.dcd
+  - id: C38_T260
+    variant: C38
+    temperature_K: 260
+    topology: tau_k18_129aa_C38_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C38_T260_5/tau_k18_129aa_C38_T260_5.dcd
+  - id: C39_T260
+    variant: C39
+    temperature_K: 260
+    topology: tau_k18_129aa_C39_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C39_T260_5/tau_k18_129aa_C39_T260_5.dcd
+  - id: C40_T260
+    variant: C40
+    temperature_K: 260
+    topology: tau_k18_129aa_C40_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C40_T260_5/tau_k18_129aa_C40_T260_5.dcd
+  - id: C41_T260
+    variant: C41
+    temperature_K: 260
+    topology: tau_k18_129aa_C41_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C41_T260_5/tau_k18_129aa_C41_T260_5.dcd
+  - id: C42_T260
+    variant: C42
+    temperature_K: 260
+    topology: tau_k18_129aa_C42_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C42_T260_5/tau_k18_129aa_C42_T260_5.dcd
+  - id: C43_T260
+    variant: C43
+    temperature_K: 260
+    topology: tau_k18_129aa_C43_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C43_T260_5/tau_k18_129aa_C43_T260_5.dcd
+  - id: C44_T260
+    variant: C44
+    temperature_K: 260
+    topology: tau_k18_129aa_C44_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C44_T260_5/tau_k18_129aa_C44_T260_5.dcd
+  - id: C45_T260
+    variant: C45
+    temperature_K: 260
+    topology: tau_k18_129aa_C45_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C45_T260_5/tau_k18_129aa_C45_T260_5.dcd
+  - id: C46_T260
+    variant: C46
+    temperature_K: 260
+    topology: tau_k18_129aa_C46_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C46_T260_5/tau_k18_129aa_C46_T260_5.dcd
+  - id: C47_T260
+    variant: C47
+    temperature_K: 260
+    topology: tau_k18_129aa_C47_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C47_T260_5/tau_k18_129aa_C47_T260_5.dcd
+  - id: C48_T260
+    variant: C48
+    temperature_K: 260
+    topology: tau_k18_129aa_C48_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C48_T260_5/tau_k18_129aa_C48_T260_5.dcd
+  - id: C49_T260
+    variant: C49
+    temperature_K: 260
+    topology: tau_k18_129aa_C49_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C49_T260_5/tau_k18_129aa_C49_T260_5.dcd
+  - id: C50_T260
+    variant: C50
+    temperature_K: 260
+    topology: tau_k18_129aa_C50_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C50_T260_5/tau_k18_129aa_C50_T260_5.dcd
+  - id: C51_T260
+    variant: C51
+    temperature_K: 260
+    topology: tau_k18_129aa_C51_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C51_T260_5/tau_k18_129aa_C51_T260_5.dcd
+  - id: C52_T260
+    variant: C52
+    temperature_K: 260
+    topology: tau_k18_129aa_C52_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C52_T260_5/tau_k18_129aa_C52_T260_5.dcd
+  - id: C53_T260
+    variant: C53
+    temperature_K: 260
+    topology: tau_k18_129aa_C53_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C53_T260_5/tau_k18_129aa_C53_T260_5.dcd
+  - id: C54_T260
+    variant: C54
+    temperature_K: 260
+    topology: tau_k18_129aa_C54_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C54_T260_5/tau_k18_129aa_C54_T260_5.dcd
+  - id: C55_T260
+    variant: C55
+    temperature_K: 260
+    topology: tau_k18_129aa_C55_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C55_T260_5/tau_k18_129aa_C55_T260_5.dcd
+  - id: C56_T260
+    variant: C56
+    temperature_K: 260
+    topology: tau_k18_129aa_C56_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C56_T260_5/tau_k18_129aa_C56_T260_5.dcd
+  - id: C57_T260
+    variant: C57
+    temperature_K: 260
+    topology: tau_k18_129aa_C57_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C57_T260_5/tau_k18_129aa_C57_T260_5.dcd
+  - id: C58_T260
+    variant: C58
+    temperature_K: 260
+    topology: tau_k18_129aa_C58_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C58_T260_5/tau_k18_129aa_C58_T260_5.dcd
+  - id: C59_T260
+    variant: C59
+    temperature_K: 260
+    topology: tau_k18_129aa_C59_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C59_T260_5/tau_k18_129aa_C59_T260_5.dcd
+  - id: C60_T260
+    variant: C60
+    temperature_K: 260
+    topology: tau_k18_129aa_C60_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C60_T260_5/tau_k18_129aa_C60_T260_5.dcd
+  - id: C61_T260
+    variant: C61
+    temperature_K: 260
+    topology: tau_k18_129aa_C61_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C61_T260_5/tau_k18_129aa_C61_T260_5.dcd
+  - id: C62_T260
+    variant: C62
+    temperature_K: 260
+    topology: tau_k18_129aa_C62_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C62_T260_5/tau_k18_129aa_C62_T260_5.dcd
+  - id: C63_T260
+    variant: C63
+    temperature_K: 260
+    topology: tau_k18_129aa_C63_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C63_T260_5/tau_k18_129aa_C63_T260_5.dcd
+  - id: C64_T260
+    variant: C64
+    temperature_K: 260
+    topology: tau_k18_129aa_C64_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C64_T260_5/tau_k18_129aa_C64_T260_5.dcd
+  - id: C65_T260
+    variant: C65
+    temperature_K: 260
+    topology: tau_k18_129aa_C65_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C65_T260_5/tau_k18_129aa_C65_T260_5.dcd
+  - id: C66_T260
+    variant: C66
+    temperature_K: 260
+    topology: tau_k18_129aa_C66_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C66_T260_5/tau_k18_129aa_C66_T260_5.dcd
+  - id: C67_T260
+    variant: C67
+    temperature_K: 260
+    topology: tau_k18_129aa_C67_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C67_T260_5/tau_k18_129aa_C67_T260_5.dcd
+  - id: C68_T260
+    variant: C68
+    temperature_K: 260
+    topology: tau_k18_129aa_C68_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C68_T260_5/tau_k18_129aa_C68_T260_5.dcd
+  - id: C69_T260
+    variant: C69
+    temperature_K: 260
+    topology: tau_k18_129aa_C69_T260_5/top.pdb
+    trajectory: tau_k18_129aa_C69_T260_5/tau_k18_129aa_C69_T260_5.dcd
+  - id: D00_T260
+    variant: D00
+    temperature_K: 260
+    topology: tau_k18_129aa_D00_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D00_T260_5/tau_k18_129aa_D00_T260_5.dcd
+  - id: D01_T260
+    variant: D01
+    temperature_K: 260
+    topology: tau_k18_129aa_D01_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D01_T260_5/tau_k18_129aa_D01_T260_5.dcd
+  - id: D02_T260
+    variant: D02
+    temperature_K: 260
+    topology: tau_k18_129aa_D02_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D02_T260_5/tau_k18_129aa_D02_T260_5.dcd
+  - id: D03_T260
+    variant: D03
+    temperature_K: 260
+    topology: tau_k18_129aa_D03_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D03_T260_5/tau_k18_129aa_D03_T260_5.dcd
+  - id: D04_T260
+    variant: D04
+    temperature_K: 260
+    topology: tau_k18_129aa_D04_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D04_T260_5/tau_k18_129aa_D04_T260_5.dcd
+  - id: D05_T260
+    variant: D05
+    temperature_K: 260
+    topology: tau_k18_129aa_D05_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D05_T260_5/tau_k18_129aa_D05_T260_5.dcd
+  - id: D06_T260
+    variant: D06
+    temperature_K: 260
+    topology: tau_k18_129aa_D06_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D06_T260_5/tau_k18_129aa_D06_T260_5.dcd
+  - id: D07_T260
+    variant: D07
+    temperature_K: 260
+    topology: tau_k18_129aa_D07_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D07_T260_5/tau_k18_129aa_D07_T260_5.dcd
+  - id: D08_T260
+    variant: D08
+    temperature_K: 260
+    topology: tau_k18_129aa_D08_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D08_T260_5/tau_k18_129aa_D08_T260_5.dcd
+  - id: D09_T260
+    variant: D09
+    temperature_K: 260
+    topology: tau_k18_129aa_D09_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D09_T260_5/tau_k18_129aa_D09_T260_5.dcd
+  - id: D10_T260
+    variant: D10
+    temperature_K: 260
+    topology: tau_k18_129aa_D10_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D10_T260_5/tau_k18_129aa_D10_T260_5.dcd
+  - id: D11_T260
+    variant: D11
+    temperature_K: 260
+    topology: tau_k18_129aa_D11_T260_5/top.pdb
+    trajectory: tau_k18_129aa_D11_T260_5/tau_k18_129aa_D11_T260_5.dcd

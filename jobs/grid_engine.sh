@@ -17,6 +17,7 @@ elif [[ -f "$STAGE/run.py" ]]; then
 else
     echo "Cannot find script for STAGE: $STAGE" >&2; exit 2
 fi
+if [[ -n "${CONFIG:-}" ]]; then set -- "$@" --config "$CONFIG"; fi
 if [[ -n "${SIMULATION:-}" ]]; then set -- "$@" --simulation "$SIMULATION"; fi
 if [[ -n "${TASK:-}" ]]; then set -- "$@" --task "$TASK"; fi
 exec "$CONTACT_PYTHON" -u "$@"

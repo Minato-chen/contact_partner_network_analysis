@@ -2,6 +2,11 @@
 # On a server, replace data_root or use an environment variable such as ${SLAB_DATA}.
 data_root: ..
 simulations:
+  - id: A00_T260
+    variant: A00
+    temperature_K: 260
+    topology: tau_k18_129aa_A00_T260_5/top.pdb
+    trajectory: tau_k18_129aa_A00_T260_5/tau_k18_129aa_A00_T260_5.dcd
   - id: A18_T260
     variant: A18
     temperature_K: 260

@@ -20,6 +20,7 @@ topic2_inter = importlib.import_module("02_topic2_polarization.plot_topic2_inter
 topic2_joint = importlib.import_module("02_topic2_polarization.plot_topic2_joint")
 
 cross_topic = importlib.import_module("00_cross_topic_overview.plot_cross_topic")
+topic3_ams = importlib.import_module("03_topic3_ams_mechanism.plot_topic3_ams")
 
 
 def run_all(object_names=("dense_chains", "central_chain")):
@@ -41,6 +42,9 @@ def run_all(object_names=("dense_chains", "central_chain")):
         
         print("\n--- Cross-Topic 7-Variant Overview ---")
         cross_topic.main(obj)
+
+        print("\n--- Topic 3: A_MS Multiscale Mechanism & Coupling (WT + 7 Variants) ---")
+        topic3_ams.main(obj)
 
     print("\n" + "=" * 60)
     print("[SUCCESS] All 05_plot figures generated successfully.")

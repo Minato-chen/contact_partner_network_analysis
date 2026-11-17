@@ -14,6 +14,7 @@
 ├── rg.py                  # 全体系全链质量加权回转半径
 ├── kappa.py               # 基于 localCIDER 计算电荷不对称分布参数 κ
 ├── scd.py                 # 序列电荷退化度参数 (Sequence Charge Decoration)
+├── ams.py                 # 多尺度电荷矩阵谱不对称指标 A_MS
 ├── _sequence.py           # 居中拓扑单链氨基酸序列读取与校验工具
 ├── residue_masses.csv     # CALVADOS2 力场标准氨基酸质量表
 └── BASIC_CALCULATE_README.md
@@ -30,6 +31,7 @@
 | **全系综回转半径** | `rg.rg_nm` | `nm` | 对模拟盒子中全部链（包含浓相与稀相）计算质量加权均方根回转半径 $R_g$ 并取时间系综平均。表征体系宏观平均构象尺寸。 |
 | **电荷图案参数 $\kappa$** | `kappa` | 无量纲 (`dimensionless`) | 基于 localCIDER 严格计算的正负电荷交替/聚集度参数。$\kappa \to 0$ 表示正负交替最均匀；$\kappa \to 1$ 表示强电荷区块化分离。 |
 | **序列电荷退化度 (SCD)** | `scd` | 无量纲 (`dimensionless`) | $\text{SCD} = \frac{1}{N}\sum_{i < j} q_i q_j \sqrt{j - i}$。表征沿序列一维空间电荷排布对多肽链长程静电吸引/排斥贡献的理论标度。 |
+| **多尺度电荷谱不对称度 ($A_{\mathrm{MS}}$)** | `ams` | 无量纲 (`dimensionless`) | $A_{\mathrm{MS}} = \frac{\Delta(5) + 2\Delta(10) + \Delta(20)}{4}$，其中 $\Delta(\ell) = f_+(\ell) - f_-(\ell)$ 为尺度 $\ell$ 下正、负电荷距离衰减矩阵最大特征值占迹比之差。表征正负电荷块相对谱集中度。 |
 
 ---
 

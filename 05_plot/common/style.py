@@ -24,21 +24,25 @@ STYLE_CONFIG = {
     "savefig.pad_inches": 0.08,
 }
 
-# Color palettes
+# Color palettes:
+# - WT (A00): Neutral grey
+# - Topic 1 (A18 -> B01 -> B10): Blue family, darkening by variant order
+# - Topic 2 Same-SCD pair (A20 -> C04): Red family, darkening by variant order
+# - Topic 2 Same-kappa pair (B09 -> C22): Green family, darkening by variant order
 COLORS_TOPIC1 = {
-    "A18": "#5B6E8A",  # Baseline / Wild-type reference (slate grey)
-    "B01": "#1D70B8",  # High-LLPS alternating charge (royal blue)
-    "B10": "#D95F02",  # Moderate-LLPS blocky charge (vermilion orange)
+    "A18": "#48BFE3",  # Bright sky/cyan-blue (1st, light)
+    "B01": "#185ADB",  # Vivid cobalt/royal blue (2nd, medium)
+    "B10": "#061A40",  # Deep midnight navy (3rd, dark)
 }
 
 COLORS_TOPIC2 = {
-    "A20": "#2A9D8F",  # High-LLPS symmetric alternating (teal green)
-    "C04": "#E76F51",  # Weak-LLPS bipolar dumbbell (coral orange)
-    "B09": "#7B2CBF",  # Moderate-LLPS asymmetric cluster (purple)
-    "C22": "#F4A261",  # Very-weak-LLPS neutral-tail collapse (sandy gold)
+    "A20": "#E76F51",  # Light-medium coral red (Same-SCD pair, 1st)
+    "C04": "#99000D",  # Deep crimson red (Same-SCD pair, 2nd)
+    "B09": "#41AB5D",  # Light-medium emerald green (Same-kappa pair, 1st)
+    "C22": "#00441B",  # Deep forest green (Same-kappa pair, 2nd)
 }
 
-COLORS_ALL = {**COLORS_TOPIC1, **COLORS_TOPIC2}
+COLORS_ALL = {"A00": "#6C757D", **COLORS_TOPIC1, **COLORS_TOPIC2}
 
 # Distinct charge decomposition colors (chosen to never collide with variant colors)
 CHARGE_COLORS = {

@@ -12,7 +12,6 @@ from pathlib import Path
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
@@ -42,16 +41,18 @@ def plot_phase_behavior_overview(object_name="dense_chains", output_dir=None):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.4, 3.2), gridspec_kw={"width_ratios": [1.15, 1.0]})
     
     # Panel 1: Density profiles
+    max_rho = 0.0
     for var in ALL_VARIANTS:
         df_dens = load_density_profile(SIM_MAP[var])
         z = df_dens["z_nm"]
         rho = df_dens["mean_chain_mM"].rolling(window=5, center=True).mean().fillna(df_dens["mean_chain_mM"])
+        max_rho = max(max_rho, float(rho.max()))
         ax1.plot(z, rho, label=var, color=COLORS_ALL[var], linewidth=1.1, alpha=0.9)
         
     ax1.set_xlabel("z (nm)")
     ax1.set_ylabel("Concentration (mM)")
     ax1.set_xlim(-60, 60)
-    ax1.set_ylim(0, 16)
+    ax1.set_ylim(0, max_rho * 1.12)
     ax1.set_title("A. Slab Density Profiles", loc="left", fontweight="bold")
     
     # Panel 2: Csat bar chart
