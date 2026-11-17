@@ -38,23 +38,38 @@ def estimate_boundary(z, concentration, parameters):
         raise ValueError(
             f"Central density {peak:.6g} mM is below the minimum; no dense boundary"
         )
+    box_half = float(abs(z[-1]))
+    min_valid_w = 3.0
+    max_valid_w = box_half * 0.45
+
+    def _valid_crossing(indices):
+        return bool(len(indices)) and (min_valid_w <= float(z[center + indices[0]]) <= max_valid_w)
+
     level = peak / 2
     right = np.flatnonzero(concentration[center:] < level)
     fixed_fallback = False
     method_name = "central_peak_half_height_right_first_bin"
-    if not len(right):
-        # High dilute concentration (weak LLPS, e.g. C22): use midpoint between peak and dilute baseline
-        dilute_baseline = float(np.min(concentration[np.abs(z) > 40])) if np.any(np.abs(z) > 40) else float(np.min(concentration))
+    if not _valid_crossing(right):
+        # High dilute concentration (weak LLPS, e.g. C22, C14): if half-peak never crosses
+        # or only crosses in the far dilute region due to noise, use midpoint to dilute baseline.
+        dilute_region = concentration[np.abs(z) > 40] if np.any(np.abs(z) > 40) else concentration
+        dilute_baseline = float(np.min(dilute_region))
         mid_level = (peak + dilute_baseline) / 2.0
         right = np.flatnonzero(concentration[center:] < mid_level)
-        if len(right):
+        if _valid_crossing(right):
             level = mid_level
             method_name = "central_peak_midpoint_right_first_bin"
         else:
-            box_half = float(abs(z[-1]))
-            right = np.array([int(box_half * 0.15 / parameters["bin_width_nm"])])
-            fixed_fallback = True
-            method_name = "fixed_width_fallback"
+            dilute_mean = float(np.mean(dilute_region))
+            mid_mean_level = (peak + dilute_mean) / 2.0
+            right = np.flatnonzero(concentration[center:] < mid_mean_level)
+            if _valid_crossing(right):
+                level = mid_mean_level
+                method_name = "central_peak_midpoint_mean_right_first_bin"
+            else:
+                right = np.array([int(box_half * 0.15 / parameters["bin_width_nm"])])
+                fixed_fallback = True
+                method_name = "fixed_width_fallback"
     right_z = float(z[center + right[0]])
     if right_z <= 0:
         raise ValueError("Right half-height width must be positive")
@@ -63,6 +78,7 @@ def estimate_boundary(z, concentration, parameters):
     coefficient = parameters["dense_coefficient"]
     return dict(
         method="central_peak_half_height_right_first_bin",
+        boundary_rule=method_name,
         peak_chain_mM=peak,
         half_height_chain_mM=level,
         right_half_height_z_nm=right_z,
